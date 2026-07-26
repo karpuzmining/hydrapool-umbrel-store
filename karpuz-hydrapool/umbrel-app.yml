@@ -2,7 +2,7 @@ manifestVersion: 1
 id: karpuz-hydrapool
 name: HydraPool
 tagline: Run your own Bitcoin mining pool
-icon: https://raw.githubusercontent.com/karpuzmining/hydrapool-umbrel-store/main/karpuz-hydrapool/icon.svg
+icon: https://raw.githubusercontent.com/karpuzmining/hydrapool-umbrel-store/master/karpuz-hydrapool/icon.svg
 category: Bitcoin
 version: "0.1.0"
 port: 3334
