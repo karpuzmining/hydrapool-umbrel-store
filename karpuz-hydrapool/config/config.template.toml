@@ -1,0 +1,37 @@
+[store]
+path = "/var/lib/hydrapool/store.db"
+background_task_frequency_hours = 24
+pplns_ttl_days = 7
+
+[stratum]
+hostname = "0.0.0.0"
+port = 3333
+start_difficulty = 1
+minimum_difficulty = 1
+
+bootstrap_address = "${HYDRAPOOL_BOOTSTRAP_ADDRESS}"
+
+zmqpubhashblock = "tcp://${APP_BITCOIN_NODE_IP}:${APP_BITCOIN_ZMQ_HASHBLOCK_PORT}"
+
+network = "${HYDRAPOOL_NETWORK}"
+version_mask = "1fffe000"
+difficulty_multiplier = 1.0
+pool_signature = "hydrapool"
+max_connections = 100
+mode = "hydrapool"
+wait_for_chain_sync = false
+
+[bitcoinrpc]
+url = "http://${APP_BITCOIN_NODE_IP}:${APP_BITCOIN_RPC_PORT}"
+username = "${APP_BITCOIN_RPC_USER}"
+password = "${APP_BITCOIN_RPC_PASS}"
+
+[logging]
+level = "info"
+stats_dir = "/var/lib/hydrapool/stats"
+
+[api]
+hostname = "0.0.0.0"
+port = 46884
+auth_user = "hydrapool"
+auth_token = "${HYDRAPOOL_API_AUTH_TOKEN}"

@@ -1,0 +1,105 @@
+version: "3.7"
+
+services:
+  app_proxy:
+    environment:
+      APP_HOST: karpuz-hydrapool_portal_1
+      APP_PORT: 80
+
+  config-generator:
+    image: python:3.12-alpine
+    restart: "no"
+    environment:
+      APP_BITCOIN_NODE_IP: "${APP_BITCOIN_NODE_IP}"
+      APP_BITCOIN_RPC_PORT: "${APP_BITCOIN_RPC_PORT}"
+      APP_BITCOIN_RPC_USER: "${APP_BITCOIN_RPC_USER}"
+      APP_BITCOIN_RPC_PASS: "${APP_BITCOIN_RPC_PASS}"
+      APP_BITCOIN_ZMQ_HASHBLOCK_PORT: "${APP_BITCOIN_ZMQ_HASHBLOCK_PORT}"
+
+      # Temporary development configuration.
+      # Replace with browser-based setup before production release.
+      HYDRAPOOL_BOOTSTRAP_ADDRESS: "bc1qjsgj90fn987ejpf64yqk84vtzr7k87h2nwnj7y"
+      HYDRAPOOL_NETWORK: "main"
+
+      # This is the development token corresponding to the temporary
+      # hydrapool/hydrapool API credentials.
+      HYDRAPOOL_API_AUTH_TOKEN: "28a556ceb0b24c9b664d1e35a81239ed$$5c9fb3271b22be05eb87272ce11c3cad55242d045eb379873ce0dc821586204a"
+
+      HYDRAPOOL_CONFIG_TEMPLATE: "/templates/config.template.toml"
+      HYDRAPOOL_CONFIG_OUTPUT: "/config/config.toml"
+    volumes:
+      - ./config/config.template.toml:/templates/config.template.toml:ro
+      - ./generate-config.py:/usr/local/bin/generate-config.py:ro
+      - ${APP_DATA_DIR}/data/config:/config
+    command:
+      - python3
+      - /usr/local/bin/generate-config.py
+
+  hydrapool:
+    image: ghcr.io/256foundation/hydrapool:latest
+    restart: on-failure
+    stop_grace_period: 1m
+    depends_on:
+      config-generator:
+        condition: service_completed_successfully
+    environment:
+      RUST_LOG: info
+      HYDRAPOOL_CONFIG: /etc/hydrapool/config.toml
+    volumes:
+      - ${APP_DATA_DIR}/data/config/config.toml:/etc/hydrapool/config.toml:ro
+      - ${APP_DATA_DIR}/data/hydrapool:/var/lib/hydrapool
+      - ${APP_DATA_DIR}/data/logs:/var/log/hydrapool
+    ports:
+      - "3333:3333"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--spider",
+          "-q",
+          "--http-user=hydrapool",
+          "--http-password=hydrapool",
+          "--auth-no-challenge",
+          "http://localhost:46884/health"
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  portal:
+    image: nginx:1.27-alpine
+    restart: on-failure
+    volumes:
+      - ./portal/index.html:/usr/share/nginx/html/index.html:ro
+
+  prometheus:
+    image: ghcr.io/256foundation/hydrapool-prometheus:latest
+    restart: on-failure
+    depends_on:
+      hydrapool:
+        condition: service_healthy
+    volumes:
+      - ${APP_DATA_DIR}/data/prometheus:/prometheus
+    command:
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.enable-admin-api"
+      - "--storage.tsdb.retention.time=15d"
+      - "--storage.tsdb.retention.size=10GB"
+
+  grafana:
+    image: ghcr.io/256foundation/hydrapool-grafana:latest
+    restart: on-failure
+    depends_on:
+      prometheus:
+        condition: service_healthy
+    volumes:
+      - ${APP_DATA_DIR}/data/grafana:/var/lib/grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: "${APP_PASSWORD}"
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /etc/grafana/dashboards/pool.json
