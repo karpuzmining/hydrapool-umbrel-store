@@ -1,14 +1,14 @@
 manifestVersion: 1
 id: karpuz-hydrapool
-name: HydraPool
+name: Hydrapool
 tagline: Run your own Bitcoin mining pool
 icon: https://raw.githubusercontent.com/karpuzmining/hydrapool-umbrel-store/master/karpuz-hydrapool/icon.svg?v=2
 category: Bitcoin
 version: "0.1.1"
 port: 3334
 description: >-
-  HydraPool for Umbrel provides an experimental deployment of the
-  HydraPool Bitcoin mining pool.
+  Hydrapool for Umbrel provides an experimental deployment of the
+  Hydrapool Bitcoin mining pool.
 
   The project is intended to simplify deployment of solo and community
   PPLNS pools while integrating with the Bitcoin node already running
