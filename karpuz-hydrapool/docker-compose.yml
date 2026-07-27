@@ -115,8 +115,10 @@ services:
 
     volumes:
       - ${APP_DATA_DIR}/data/prometheus:/prometheus
+      - ${APP_DATA_DIR}/config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
 
     command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
       - "--storage.tsdb.path=/prometheus"
       - "--web.enable-admin-api"
       - "--storage.tsdb.retention.time=15d"

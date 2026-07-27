@@ -1,0 +1,16 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: "Hydrapool"
+    scrape_interval: 15s
+    metrics_path: "/metrics"
+
+    basic_auth:
+      username: "hydrapool"
+      password: "hydrapool"
+
+    static_configs:
+      - targets:
+          - "hydrapool:46884"
