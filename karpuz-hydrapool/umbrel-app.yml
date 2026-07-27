@@ -4,18 +4,20 @@ name: Hydrapool
 tagline: Run your own Bitcoin mining pool
 icon: https://raw.githubusercontent.com/karpuzmining/hydrapool-umbrel-store/master/karpuz-hydrapool/icon.svg?v=2
 category: Bitcoin
-version: "0.1.7"
+version: "0.1.8"
 port: 3334
 description: >-
-  Hydrapool for Umbrel provides an experimental deployment of the
-  Hydrapool Bitcoin mining pool.
+  EXPERIMENTAL SOFTWARE — NOT READY FOR PRODUCTION USE.
 
-  The project is intended to simplify deployment of solo and community
-  PPLNS pools while integrating with the Bitcoin node already running
-  on Umbrel.
+  Hydrapool for Umbrel is an early development integration intended for
+  testing and review. Configuration, accounting behavior, installation,
+  and upgrade procedures may change without notice.
 
-  This version is under active development and is not yet recommended
-  for production mining.
+  Do not rely on this package for production mining or payouts.
+
+  Hydrapool is a 256 Foundation project. For more information, visit
+  hydrapool.org.
+
 developer: 256 Foundation
 website: https://www.256foundation.org/projects/hydrapool
 submitter: Karpuz Mining
@@ -24,7 +26,7 @@ repo: https://github.com/karpuzmining/Hydrapool
 support: https://github.com/karpuzmining/hydrapool-umbrel-store/issues
 gallery: []
 releaseNotes: >-
-  Ship the stable Hydrapool core stack while monitoring integration is refined.
+  Restore preliminary Prometheus and Grafana monitoring. This remains an experimental development build.
 dependencies:
   - bitcoin-knots
 path: ""

@@ -1,19 +1,53 @@
-# Karpuz Mining Umbrel App Store
+# Hydrapool for Umbrel
 
-This repository contains Umbrel applications maintained by Karpuz Mining.
+> [!CAUTION]
+> **Experimental software — not ready for production use**
+>
+> This repository contains an early development build of the Hydrapool
+> integration for umbrelOS. It is being published for development,
+> testing, and review only.
+>
+> Do not rely on this package for production mining, pool accounting,
+> payouts, or custody of funds. Installation procedures, configuration
+> formats, container images, and upgrade behavior may change without notice.
 
-## Available applications
+Hydrapool for Umbrel is intended to make running a self-hosted Bitcoin
+mining pool accessible through the Umbrel interface.
 
-### Hydra Pool
+## Current development status
 
-An experimental Umbrel integration for Hydrapool, an open-source Bitcoin
-mining pool supporting solo and community PPLNS mining. Hydrapool supports multiple payout structures, Stratum V1/V2 protocols, and is designed to make running a mining pool accessible to individuals, communities, and organizations.
+The current test build can:
 
-Hydrapool for Umbrel is under active development and is not yet recommended
-for production mining.
+- Install through a custom Umbrel Community App Store
+- Connect automatically to Bitcoin Knots
+- Generate Hydrapool RPC and ZMQ configuration
+- Start the Hydrapool Stratum server
+- Accept connections from Bitcoin miners
+- Serve a preliminary local connection page
+
+The following work remains before the package should be considered ready
+for broader testing:
+
+- Remove all hardcoded payout configuration
+- Add first-run Bitcoin address setup through the web interface
+- Add safe configuration updates and restarts
+- Complete monitoring and dashboard integration
+- Test upgrades, restarts, backups, and uninstall behavior
+- Pin all container images to immutable multi-architecture digests
+- Test Bitcoin Core and Bitcoin Knots independently
+- Review security and authentication
+- Complete upstream review with the Hydrapool maintainers
+
+## Project information
+
+Hydrapool is a 256 Foundation project.
+
+For more information, visit:
+
+https://hydrapool.org
 
 ## Installation
 
-Add this repository as a Community App Store in Umbrel:
-
-https://github.com/karpuzmining/hydrapool-umbrel-store
+Public installation is not currently recommended. Developers and reviewers
+should understand that this repository is under active development and may
+contain breaking changes.
