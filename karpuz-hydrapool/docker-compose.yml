@@ -43,12 +43,14 @@ services:
       - ${APP_DATA_DIR}/data/config:/data/config
       - ${APP_DATA_DIR}/data/hydrapool:/data/hydrapool
       - ${APP_DATA_DIR}/data/logs:/data/logs
+      - ${APP_DATA_DIR}/data/prometheus:/data/prometheus
+      - ${APP_DATA_DIR}/data/grafana:/data/grafana
     command:
       - sh
       - -c
       - |
-        mkdir -p /data/config /data/hydrapool /data/logs
-        chown -R 999:999 /data/config /data/hydrapool /data/logs
+        mkdir -p /data/config /data/hydrapool /data/logs /data/prometheus /data/grafana
+        chown -R 999:999 /data/config /data/hydrapool /data/logs /data/prometheus /data/grafana
 
   hydrapool:
     image: ghcr.io/256foundation/hydrapool:latest
