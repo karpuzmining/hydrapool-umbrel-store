@@ -4,7 +4,7 @@ name: Hydrapool
 tagline: Run your own Bitcoin mining pool
 icon: https://raw.githubusercontent.com/karpuzmining/hydrapool-umbrel-store/master/karpuz-hydrapool/icon.svg?v=2
 category: Bitcoin
-version: "0.1.4"
+version: "0.1.5"
 port: 3334
 description: >-
   Hydrapool for Umbrel provides an experimental deployment of the
@@ -24,7 +24,7 @@ repo: https://github.com/karpuzmining/Hydrapool
 support: https://github.com/karpuzmining/hydrapool-umbrel-store/issues
 gallery: []
 releaseNotes: >-
-  Automatically configure writable directory permissions for Hydrapool.
+  Correct the initialization service ordering and Compose structure.
 dependencies:
   - bitcoin-knots
 path: ""
