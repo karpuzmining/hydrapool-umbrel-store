@@ -14,12 +14,11 @@ services:
       APP_BITCOIN_RPC_PASS: "${APP_BITCOIN_RPC_PASS}"
       APP_BITCOIN_ZMQ_HASHBLOCK_PORT: "${APP_BITCOIN_ZMQ_HASHBLOCK_PORT}"
 
-      # Temporary development setting.
-      # This must be replaced by the first-run web setup before broader release.
+      # Temporary development settings.
       HYDRAPOOL_BOOTSTRAP_ADDRESS: "bc1qjsgj90fn987ejpf64yqk84vtzr7k87h2nwnj7y"
-
       HYDRAPOOL_NETWORK: "main"
       HYDRAPOOL_API_AUTH_TOKEN: "28a556ceb0b24c9b664d1e35a81239ed$$5c9fb3271b22be05eb87272ce11c3cad55242d045eb379873ce0dc821586204a"
+
       HYDRAPOOL_CONFIG_TEMPLATE: "/templates/config.template.toml"
       HYDRAPOOL_CONFIG_OUTPUT: "/config/config.toml"
 
@@ -45,27 +44,13 @@ services:
       - ${APP_DATA_DIR}/data/config:/data/config
       - ${APP_DATA_DIR}/data/hydrapool:/data/hydrapool
       - ${APP_DATA_DIR}/data/logs:/data/logs
-      - ${APP_DATA_DIR}/data/prometheus:/data/prometheus
-      - ${APP_DATA_DIR}/data/grafana:/data/grafana
 
     command:
       - sh
       - -c
       - |
-        mkdir -p \
-          /data/config \
-          /data/hydrapool \
-          /data/logs \
-          /data/prometheus \
-          /data/grafana
-
-        chown -R 999:999 \
-          /data/config \
-          /data/hydrapool \
-          /data/logs
-
-        chown -R 65534:65534 /data/prometheus
-        chown -R 472:472 /data/grafana
+        mkdir -p /data/config /data/hydrapool /data/logs
+        chown -R 999:999 /data/config /data/hydrapool /data/logs
 
   hydrapool:
     image: ghcr.io/256foundation/hydrapool:latest
@@ -100,65 +85,10 @@ services:
           "--auth-no-challenge",
           "http://localhost:46884/health"
         ]
-      interval: 15s
+      interval: 30s
       timeout: 10s
-      retries: 8
+      retries: 5
       start_period: 30s
-
-  prometheus:
-    image: ghcr.io/256foundation/hydrapool-prometheus:latest
-    restart: on-failure
-
-    depends_on:
-      hydrapool:
-        condition: service_healthy
-
-    volumes:
-      - ${APP_DATA_DIR}/data/prometheus:/prometheus
-      - ${APP_DATA_DIR}/config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-
-    command:
-      - "--config.file=/etc/prometheus/prometheus.yml"
-      - "--storage.tsdb.path=/prometheus"
-      - "--web.enable-admin-api"
-      - "--storage.tsdb.retention.time=15d"
-      - "--storage.tsdb.retention.size=10GB"
-
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "wget",
-          "--spider",
-          "-q",
-          "http://localhost:9090/-/healthy"
-        ]
-      interval: 15s
-      timeout: 10s
-      retries: 8
-      start_period: 20s
-
-  grafana:
-    image: ghcr.io/256foundation/hydrapool-grafana:latest
-    restart: on-failure
-
-    depends_on:
-      prometheus:
-        condition: service_healthy
-
-    volumes:
-      - ${APP_DATA_DIR}/data/grafana:/var/lib/grafana
-
-    ports:
-      - "3001:3000"
-
-    environment:
-      GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD: "${APP_PASSWORD}"
-      GF_USERS_ALLOW_SIGN_UP: "false"
-      GF_AUTH_ANONYMOUS_ENABLED: "true"
-      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
-      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /etc/grafana/dashboards/pool.json
 
   portal:
     image: nginx:1.27-alpine
