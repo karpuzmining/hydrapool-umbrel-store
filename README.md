@@ -3,18 +3,17 @@
 > [!CAUTION]
 > **Temporarily unavailable for installation**
 >
-> The Hydrapool Umbrel integration is an experimental work in progress and
-> is currently undergoing stabilization.
+> The Hydrapool Umbrel integration is under active development and is
+> currently being stabilized.
 >
-> Public installation is temporarily disabled. Please do not attempt to
-> install or run the current development builds for production mining,
-> accounting, or payouts.
+> Public installation is disabled until first-run payout configuration,
+> installation reliability, node compatibility, and upgrade behavior have
+> been fully tested.
+>
+> Do not use current development builds for production mining, pool
+> accounting, payouts, or custody of funds.
 
-Development continues in dedicated branches while installation,
-configuration, monitoring, upgrade behavior, and security are tested.
+Hydrapool is an open-source Bitcoin mining pool built to be one-click
+deployable and self-hosted.
 
-Hydrapool is a 256 Foundation project.
-
-For more information, visit:
-
-https://hydrapool.org
+For more information, visit https://hydrapool.org.
