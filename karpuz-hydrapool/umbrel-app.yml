@@ -4,7 +4,7 @@ name: Hydrapool
 tagline: Run your own Bitcoin mining pool
 icon: https://raw.githubusercontent.com/karpuzmining/hydrapool-umbrel-store/master/karpuz-hydrapool/icon.svg?v=2
 category: Bitcoin
-version: "0.1.10"
+version: "0.1.11"
 port: 3334
 description: >-
   EXPERIMENTAL SOFTWARE — NOT READY FOR PRODUCTION USE.
@@ -26,7 +26,7 @@ repo: https://github.com/karpuzmining/Hydrapool
 support: https://github.com/karpuzmining/hydrapool-umbrel-store/issues
 gallery: []
 releaseNotes: >-
-  Restore the stable Hydrapool core stack while monitoring remains under development.
+  Refresh the Hydrapool landing page and add an experimental software warning.
 dependencies:
   - bitcoin-knots
 path: ""
