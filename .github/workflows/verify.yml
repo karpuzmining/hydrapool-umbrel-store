@@ -1,0 +1,17 @@
+name: Verify Hydrapool app
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Dashboard, pool modes, and stratum
+        run: bash scripts/verify.sh

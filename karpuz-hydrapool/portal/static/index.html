@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#070910" />
+    <title>Hydrapool</title>
+    <link rel="icon" href="mascot.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="app.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="top">
+        <div class="brand">
+          <img class="mascot" src="mascot.svg" alt="Hydra, the orange multi-headed pool mascot" />
+          <div>
+            <p class="kicker">UMBREL NODE</p>
+            <h1>HYDRAPOOL</h1>
+          </div>
+        </div>
+        <nav class="tabs" aria-label="Sections">
+          <button type="button" class="tab" data-tab="overview" aria-pressed="true">Overview</button>
+          <button type="button" class="tab" data-tab="miners">Miners</button>
+          <button type="button" class="tab" data-tab="connect">Connect</button>
+          <button type="button" class="tab" data-tab="setup">Setup</button>
+        </nav>
+        <div class="status-pill" id="pool-status">
+          <span class="dot"></span>
+          <span id="pool-status-text">Checking</span>
+        </div>
+      </header>
+
+      <p class="banner" id="bitcoin-banner" hidden></p>
+
+      <main>
+        <section class="view" id="view-overview">
+          <div class="tiles">
+            <article class="tile tile-cyan">
+              <p>Hashrate (5m)</p>
+              <strong id="hash-5m">—</strong>
+              <span id="hash-5m-note">Waiting for shares</span>
+            </article>
+            <article class="tile tile-magenta">
+              <p>Avg hashrate (1h)</p>
+              <strong id="hash-1h">—</strong>
+              <span>Trailing hour</span>
+            </article>
+            <article class="tile tile-yellow">
+              <p>Active users</p>
+              <strong id="active-users">0</strong>
+              <span>Payout addresses</span>
+            </article>
+            <article class="tile tile-green">
+              <p>Active workers</p>
+              <strong id="active-workers">0</strong>
+              <span id="share-note">Accepted shares 0</span>
+            </article>
+          </div>
+
+          <div class="split">
+            <article class="panel">
+              <header class="panel-head">
+                <h2>Hashrate history</h2>
+                <span>Last 6h</span>
+              </header>
+              <canvas id="history-chart" width="800" height="280" aria-label="Hashrate history"></canvas>
+            </article>
+            <article class="panel">
+              <header class="panel-head">
+                <h2>Miner share</h2>
+                <span>5 minute</span>
+              </header>
+              <div class="donut-wrap">
+                <canvas id="share-donut" width="220" height="220" aria-label="Hashrate share by miner"></canvas>
+                <ul id="share-legend"></ul>
+              </div>
+            </article>
+          </div>
+
+          <article class="panel stratum">
+            <header class="panel-head">
+              <h2>Stratum</h2>
+              <span id="stratum-mode">Not configured</span>
+            </header>
+            <div class="copy-grid" id="overview-stratum"></div>
+          </article>
+
+          <article class="panel">
+            <header class="panel-head">
+              <h2>Users + workers</h2>
+              <div class="table-tools">
+                <input id="search-overview" type="search" placeholder="Search address or worker" aria-label="Search miners" />
+                <button type="button" class="toggle" id="group-overview" aria-pressed="true">Group</button>
+                <button type="button" class="toggle" id="idle-overview" aria-pressed="false">Show idle</button>
+              </div>
+            </header>
+            <div class="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Rank</th>
+                    <th>Worker</th>
+                    <th>User</th>
+                    <th>Hashrate</th>
+                    <th>Best</th>
+                    <th>Last share</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="table-overview"></tbody>
+              </table>
+            </div>
+          </article>
+        </section>
+
+        <section class="view" id="view-miners" hidden>
+          <article class="panel">
+            <header class="panel-head">
+              <h2>Fleet</h2>
+              <div class="table-tools">
+                <input id="search-miners" type="search" placeholder="Search address or worker" aria-label="Search fleet" />
+                <button type="button" class="toggle" id="group-miners" aria-pressed="false">Group</button>
+                <button type="button" class="toggle" id="idle-miners" aria-pressed="true">Show idle</button>
+              </div>
+            </header>
+            <div class="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Rank</th>
+                    <th>Worker</th>
+                    <th>User</th>
+                    <th>Hashrate</th>
+                    <th>Best</th>
+                    <th>Last share</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="table-miners"></tbody>
+              </table>
+            </div>
+          </article>
+        </section>
+
+        <section class="view" id="view-connect" hidden>
+          <div class="split connect-split">
+            <article class="panel">
+              <header class="panel-head">
+                <h2 id="connect-title">Point a miner</h2>
+                <span id="connect-network"></span>
+              </header>
+              <div class="copy-grid" id="connect-stratum"></div>
+              <ol class="steps" id="connect-steps"></ol>
+            </article>
+            <article class="panel">
+              <header class="panel-head">
+                <h2>Payouts</h2>
+                <span>Coinbase</span>
+              </header>
+              <div id="payout-copy" class="prose"></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="view" id="view-setup" hidden>
+          <form id="setup-form" class="setup-layout">
+            <div class="mode-grid">
+              <label class="mode-card">
+                <input type="radio" name="mode" value="solo" checked />
+                <span>
+                  <strong>Local solo</strong>
+                  <em>Miners on your LAN. Blocks pay your address.</em>
+                </span>
+              </label>
+              <label class="mode-card">
+                <input type="radio" name="mode" value="pplns" />
+                <span>
+                  <strong>PPLNS with friends</strong>
+                  <em>Share the pool over Tailscale. Each address is paid.</em>
+                </span>
+              </label>
+            </div>
+
+            <article class="panel">
+              <label class="field">
+                <span id="address-label">Your payout address</span>
+                <input id="payout-address" name="payout_address" autocomplete="off" spellcheck="false" required placeholder="bc1q..." />
+              </label>
+              <p class="hint" id="address-hint"></p>
+
+              <div id="pplns-fields">
+                <div class="field-row">
+                  <label class="field">
+                    <span>Pool fee (basis points)</span>
+                    <input id="fee-bps" name="fee_bps" type="number" min="0" max="9999" value="0" />
+                  </label>
+                  <label class="field">
+                    <span>Fee address</span>
+                    <input id="fee-address" name="fee_address" autocomplete="off" spellcheck="false" placeholder="Same network as the payout address" />
+                  </label>
+                </div>
+                <p class="hint">100 basis points is 1%. Leave the fee at 0 to pay miners the whole block. Your address is the bootstrap payout for the first seconds, before any shares exist.</p>
+                <label class="field">
+                  <span>Tailscale MagicDNS name</span>
+                  <input id="tailscale-host" name="tailscale_host" autocomplete="off" spellcheck="false" placeholder="umbrel.tailnet-name.ts.net" />
+                </label>
+                <p class="hint">Install Umbrel's Tailscale app, open it, and paste this machine's tailnet name. Friends use that name with port 3333. Leave it blank until Tailscale is connected.</p>
+                <div class="field-row">
+                  <label class="field">
+                    <span>PPLNS window multiplier</span>
+                    <input id="difficulty-multiplier" name="difficulty_multiplier" type="number" min="0.01" max="100" step="0.01" value="1" />
+                  </label>
+                  <label class="field">
+                    <span>Remember shares (days)</span>
+                    <input id="pplns-ttl" name="pplns_ttl_days" type="number" min="1" max="30" value="7" />
+                  </label>
+                </div>
+              </div>
+
+              <details>
+                <summary>Difficulty</summary>
+                <div class="field-row">
+                  <label class="field">
+                    <span>Starting difficulty</span>
+                    <input id="start-difficulty" name="start_difficulty" type="number" min="1" value="1024" />
+                  </label>
+                  <label class="field">
+                    <span>Minimum difficulty</span>
+                    <input id="minimum-difficulty" name="minimum_difficulty" type="number" min="1" value="1" />
+                  </label>
+                </div>
+                <p class="hint">1024 is a sane start for small ASIC miners. The pool can still lower a worker toward the minimum. Bitaxe-class miners are fine at these defaults.</p>
+              </details>
+
+              <div class="form-actions">
+                <button type="submit" class="primary" id="save-setup">Save and start pool</button>
+                <p class="hint">Saving rewrites the pool config and restarts Hydrapool. Miners reconnect on their own. You can switch modes later from this tab.</p>
+              </div>
+              <p class="form-error" id="setup-error" hidden></p>
+              <p class="form-ok" id="setup-ok" hidden></p>
+            </article>
+          </form>
+        </section>
+      </main>
+    </div>
+    <script src="app.js"></script>
+  </body>
+</html>
