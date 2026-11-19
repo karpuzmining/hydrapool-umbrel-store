@@ -11,6 +11,33 @@ function palette() {
   return isHashdash() ? PALETTES.hashdash : PALETTES.neon;
 }
 
+const CHART_RANGES = [
+  { seconds: 3600, label: "Last 1h" },
+  { seconds: 21600, label: "Last 6h" },
+  { seconds: 86400, label: "Last 24h" },
+  { seconds: 604800, label: "Last 7d" },
+];
+
+function readPref(key, fallback) {
+  try {
+    const value = localStorage.getItem(key);
+    return value == null || value === "" ? fallback : value;
+  } catch (error) {
+    return fallback;
+  }
+}
+
+function writePref(key, value) {
+  try {
+    localStorage.setItem(key, value);
+  } catch (error) {
+    /* private mode can reject storage */
+  }
+}
+
+let chartRange = Number(readPref("hydrapool-chart-range", "21600"));
+let avgWindow = Number(readPref("hydrapool-avg-window", "300"));
+
 const state = {
   meta: null,
   live: { users: [], history: [] },
@@ -348,7 +375,7 @@ function drawCharts() {
 
 function canvasSize(canvas) {
   const width = canvas.clientWidth || 320;
-  const height = canvas.id === "share-donut" ? 180 : 220;
+  const height = canvas.id === "share-donut" ? 180 : canvas.id === "history-chart" ? 280 : 220;
   const ratio = window.devicePixelRatio || 1;
   canvas.width = Math.floor(width * ratio);
   canvas.height = Math.floor(height * ratio);
@@ -357,59 +384,95 @@ function canvasSize(canvas) {
   return { ctx, width, height };
 }
 
-function drawHistory(canvas) {
-  if (isHashdash()) {
-    drawHistoryHashdash(canvas);
-    return;
-  }
-  const { ctx, width, height } = canvasSize(canvas);
-  ctx.clearRect(0, 0, width, height);
-  ctx.strokeStyle = "rgba(61, 240, 255, 0.12)";
-  ctx.lineWidth = 1;
-  for (let i = 1; i < 4; i += 1) {
-    const y = (height / 4) * i;
-    ctx.beginPath();
-    ctx.moveTo(0, y);
-    ctx.lineTo(width, y);
-    ctx.stroke();
-  }
-  const points = (state.live && state.live.history) || [];
-  if (points.length < 2) {
-    ctx.fillStyle = "#8ea4bc";
-    ctx.font = "13px Share Tech Mono, monospace";
-    ctx.fillText("Waiting for shares", 16, height / 2);
-    return;
-  }
-  const max = Math.max(...points.map((point) => point.hashrate), 1);
-  const minT = points[0].t;
-  const maxT = points[points.length - 1].t || minT + 1;
-  const coords = points.map((point) => {
-    const x = ((point.t - minT) / (maxT - minT)) * (width - 16) + 8;
-    const y = height - 16 - (point.hashrate / max) * (height - 32);
-    return [x, y];
-  });
-  ctx.beginPath();
-  coords.forEach(([x, y], index) => {
-    if (index === 0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
-  });
-  ctx.strokeStyle = "#3df0ff";
-  ctx.lineWidth = 2;
-  ctx.shadowColor = "#3df0ff";
-  ctx.shadowBlur = 12;
-  ctx.stroke();
-  ctx.lineTo(coords[coords.length - 1][0], height - 8);
-  ctx.lineTo(coords[0][0], height - 8);
-  ctx.closePath();
-  const fill = ctx.createLinearGradient(0, 0, 0, height);
-  fill.addColorStop(0, "rgba(255, 61, 190, 0.28)");
-  fill.addColorStop(1, "rgba(61, 240, 255, 0)");
-  ctx.fillStyle = fill;
-  ctx.shadowBlur = 0;
-  ctx.fill();
+function historySpan() {
+  return Number((state.live && state.live.history_span) || 0);
 }
 
-function drawHistoryHashdash(canvas) {
+function windowReady(seconds) {
+  return historySpan() >= seconds * 0.9;
+}
+
+function chosenChartRange() {
+  const ready = CHART_RANGES.filter((item) => windowReady(item.seconds));
+  const wanted = CHART_RANGES.find((item) => item.seconds === chartRange);
+  if (wanted && windowReady(wanted.seconds)) return wanted;
+  return ready.length ? ready[ready.length - 1] : null;
+}
+
+function formatCovered(seconds) {
+  if (seconds >= 86400) return `Last ${Math.max(1, Math.round(seconds / 86400))}d`;
+  if (seconds >= 3600) return `Last ${Math.max(1, Math.round(seconds / 3600))}h`;
+  if (seconds >= 60) return `Last ${Math.max(1, Math.round(seconds / 60))}m`;
+  return "Last few seconds";
+}
+
+function chartPoints() {
+  const all = (state.live && state.live.history) || [];
+  if (all.length < 2) return all;
+  const chosen = chosenChartRange();
+  if (!chosen) return all;
+  const end = all[all.length - 1].t;
+  const visible = all.filter((point) => point.t >= end - chosen.seconds);
+  return visible.length >= 2 ? visible : all;
+}
+
+function smoothPoints(points) {
+  if (points.length < 5) return points;
+  const radius = 2;
+  return points.map((point, index) => {
+    let sum = 0;
+    let count = 0;
+    for (let cursor = Math.max(0, index - radius); cursor <= Math.min(points.length - 1, index + radius); cursor += 1) {
+      sum += points[cursor].hashrate;
+      count += 1;
+    }
+    return { t: point.t, hashrate: sum / count };
+  });
+}
+
+function renderHistory() {
+  const span = historySpan();
+  const chosen = chosenChartRange();
+  const label = $("history-range-label");
+  if (label) label.textContent = chosen ? chosen.label : formatCovered(span);
+  document.querySelectorAll("#chart-range button").forEach((button) => {
+    const seconds = Number(button.dataset.range);
+    button.disabled = !windowReady(seconds);
+    button.setAttribute("aria-pressed", chosen && chosen.seconds === seconds ? "true" : "false");
+  });
+  document.querySelectorAll("#avg-window button").forEach((button) => {
+    const seconds = Number(button.dataset.avg);
+    const ready = windowReady(seconds);
+    button.disabled = !ready;
+    button.setAttribute("aria-pressed", ready && seconds === avgWindow ? "true" : "false");
+  });
+  const rates = (state.live && state.live.hashrates) || {};
+  const rate = windowReady(avgWindow) ? rates[String(avgWindow)] : null;
+  setRate("actual-hashrate", typeof rate === "number" ? rate : null);
+}
+
+function bindHistory() {
+  document.querySelectorAll("#avg-window button").forEach((button) => {
+    button.addEventListener("click", () => {
+      if (button.disabled) return;
+      avgWindow = Number(button.dataset.avg);
+      writePref("hydrapool-avg-window", String(avgWindow));
+      renderHistory();
+    });
+  });
+  document.querySelectorAll("#chart-range button").forEach((button) => {
+    button.addEventListener("click", () => {
+      if (button.disabled) return;
+      chartRange = Number(button.dataset.range);
+      writePref("hydrapool-chart-range", String(chartRange));
+      renderHistory();
+      if (state.tab === "overview") drawCharts();
+    });
+  });
+}
+
+function drawHistory(canvas) {
+  const dash = isHashdash();
   const { ctx, width, height } = canvasSize(canvas);
   ctx.clearRect(0, 0, width, height);
   const padL = 52;
@@ -418,7 +481,7 @@ function drawHistoryHashdash(canvas) {
   const padB = 26;
   const plotW = Math.max(10, width - padL - padR);
   const plotH = Math.max(10, height - padT - padB);
-  const points = (state.live && state.live.history) || [];
+  const points = smoothPoints(chartPoints());
   const max = points.length ? Math.max(...points.map((point) => point.hashrate), 1) : 1;
   const units = ["H/s", "kH/s", "MH/s", "GH/s", "TH/s", "PH/s", "EH/s"];
   let unitIndex = 0;
@@ -428,10 +491,13 @@ function drawHistoryHashdash(canvas) {
     unitIndex += 1;
   }
   const scale = 1000 ** unitIndex;
-  ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
-  ctx.fillStyle = "rgba(226, 232, 240, 0.62)";
+  const grid = dash ? "rgba(255, 255, 255, 0.08)" : "rgba(61, 240, 255, 0.16)";
+  const ink = dash ? "rgba(226, 232, 240, 0.7)" : "#8ea4bc";
+  const line = dash ? "#3ba7ff" : "#3df0ff";
+  ctx.strokeStyle = grid;
+  ctx.fillStyle = ink;
   ctx.lineWidth = 1;
-  ctx.font = "11px Segoe UI, Helvetica Neue, sans-serif";
+  ctx.font = dash ? "11px Segoe UI, Helvetica Neue, sans-serif" : "11px Share Tech Mono, monospace";
   ctx.textAlign = "right";
   ctx.textBaseline = "middle";
   for (let i = 0; i < 5; i += 1) {
@@ -444,13 +510,12 @@ function drawHistoryHashdash(canvas) {
     const digits = value >= 100 || value === 0 ? 0 : value >= 10 ? 1 : 2;
     ctx.fillText(value.toFixed(digits), padL - 6, y);
   }
-  ctx.fillStyle = "#9fd2ff";
+  ctx.fillStyle = line;
   ctx.textAlign = "left";
-  ctx.fillText(`Hashrate (${units[unitIndex]})`, padL, 10);
+  ctx.fillText(`Hashrate (${units[unitIndex]})`, padL, 12);
   if (points.length < 2) {
-    ctx.fillStyle = "rgba(226, 232, 240, 0.62)";
-    ctx.font = "13px Segoe UI, Helvetica Neue, sans-serif";
-    ctx.textAlign = "left";
+    ctx.fillStyle = ink;
+    ctx.font = dash ? "13px Segoe UI, Helvetica Neue, sans-serif" : "13px Share Tech Mono, monospace";
     ctx.fillText("Waiting for shares", padL + 8, padT + plotH / 2);
     return;
   }
@@ -466,27 +531,35 @@ function drawHistoryHashdash(canvas) {
     if (index === 0) ctx.moveTo(x, y);
     else ctx.lineTo(x, y);
   });
-  ctx.strokeStyle = "#3ba7ff";
+  ctx.strokeStyle = line;
   ctx.lineWidth = 2;
-  ctx.shadowBlur = 0;
+  ctx.shadowColor = dash ? "transparent" : line;
+  ctx.shadowBlur = dash ? 0 : 8;
   ctx.stroke();
   ctx.lineTo(coords[coords.length - 1][0], padT + plotH);
   ctx.lineTo(coords[0][0], padT + plotH);
   ctx.closePath();
   const fill = ctx.createLinearGradient(0, padT, 0, padT + plotH);
-  fill.addColorStop(0, "rgba(59, 167, 255, 0.38)");
-  fill.addColorStop(1, "rgba(59, 167, 255, 0.02)");
+  if (dash) {
+    fill.addColorStop(0, "rgba(59, 167, 255, 0.38)");
+    fill.addColorStop(1, "rgba(59, 167, 255, 0.02)");
+  } else {
+    fill.addColorStop(0, "rgba(61, 240, 255, 0.28)");
+    fill.addColorStop(1, "rgba(61, 240, 255, 0)");
+  }
   ctx.fillStyle = fill;
+  ctx.shadowBlur = 0;
   ctx.fill();
-  ctx.fillStyle = "rgba(226, 232, 240, 0.62)";
-  ctx.font = "11px Segoe UI, Helvetica Neue, sans-serif";
+  ctx.fillStyle = ink;
+  ctx.font = dash ? "11px Segoe UI, Helvetica Neue, sans-serif" : "11px Share Tech Mono, monospace";
   ctx.textAlign = "center";
   ctx.textBaseline = "alphabetic";
-  [0, Math.floor(points.length / 2), points.length - 1].forEach((index) => {
+  const marks = [0, Math.floor(points.length / 2), points.length - 1];
+  marks.forEach((index, mark) => {
+    if (mark > 0 && marks[mark] === marks[mark - 1]) return;
     const point = points[index];
-    const x = coords[index][0];
     const label = new Date(point.t * 1000).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
-    ctx.fillText(label, x, height - 6);
+    ctx.fillText(label, coords[index][0], height - 6);
   });
 }
 
@@ -595,6 +668,7 @@ function render() {
   renderTable("overview");
   renderTable("miners");
   renderConnect();
+  renderHistory();
   if (!document.getElementById("view-overview").hidden) drawCharts();
 }
 
@@ -732,6 +806,7 @@ function bindExperimental() {
   });
 }
 
+bindHistory();
 bindExperimental();
 bindTheme();
 bind();

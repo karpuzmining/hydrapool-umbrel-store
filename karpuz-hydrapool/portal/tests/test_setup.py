@@ -228,6 +228,10 @@ worker_last_share_at{btcaddress="bc1quser",workername="rig"} 2000
         self.assertEqual(snap["active_workers"], 1)
         self.assertEqual(snap["active_users"], 1)
         self.assertAlmostEqual(snap["hashrate_5m"], 10 * (1 << 32) / 300)
+        self.assertEqual(snap["history_span"], 300)
+        self.assertAlmostEqual(snap["hashrates"]["300"], snap["hashrate_5m"])
+        self.assertIsNone(snap["hashrates"]["86400"])
+        self.assertGreaterEqual(len(snap["history"]), 1)
 
 
 class HttpTests(unittest.TestCase):
@@ -273,9 +277,10 @@ class HttpTests(unittest.TestCase):
         self.assertIn(b"https://github.com/karpuzmining/hydrapool-umbrel-store/issues", body)
         self.assertNotIn(b"overview-stratum", body)
         self.assertIn(b"connect-stratum", body)
-        self.assertIn(b"app.css?v=1.0.8", body)
-        self.assertIn(b"app.js?v=1.0.8", body)
-        self.assertIn(b"mascot.svg?v=1.0.8", body)
+        self.assertNotIn(b"warranty", body.lower())
+        self.assertIn(b"app.css?v=1.0.9", body)
+        self.assertIn(b"app.js?v=1.0.9", body)
+        self.assertIn(b"mascot.svg?v=1.0.9", body)
         status, body = self.request("/healthz")
         self.assertEqual(status, 200)
 

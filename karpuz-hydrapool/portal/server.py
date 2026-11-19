@@ -25,14 +25,14 @@ import bitcoin_status
 import configgen
 import metrics
 
-ASSET_VERSION = "1.0.8"
+ASSET_VERSION = "1.0.9"
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 DATA_DIR = Path(os.environ.get("DATA_DIR", "/data"))
 API_URL = os.environ.get("HYDRAPOOL_API_URL", "http://hydrapool:46884").rstrip("/")
 STRATUM_PORT = int(os.environ.get("HYDRAPOOL_STRATUM_PORT", "34533"))
 SAMPLE_SECONDS = int(os.environ.get("HYDRAPOOL_SAMPLE_SECONDS", "15"))
-HISTORY_SECONDS = 6 * 60 * 60
+HISTORY_SECONDS = 7 * 24 * 60 * 60
 
 CONTENT_TYPES = {
     ".html": "text/html; charset=utf-8",

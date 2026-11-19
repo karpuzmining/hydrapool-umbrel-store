@@ -1,7 +1,7 @@
 # Hydrapool for Umbrel
 
 **Experimental.** Hydrapool on Umbrel is experimental software. Test with a
-small hashrate first. It comes with no warranty.
+small hashrate first.
 
 Hydrapool is an open-source Bitcoin mining pool from the 256 Foundation.
 This repository is a community Umbrel app store that installs it on umbrelOS.

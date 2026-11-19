@@ -3,12 +3,11 @@ id: karpuz-hydrapool
 name: Hydrapool
 tagline: A Bitcoin pool on your Umbrel
 category: bitcoin
-version: "1.0.8"
+version: "1.0.9"
 port: 3334
 icon: https://raw.githubusercontent.com/karpuzmining/hydrapool-umbrel-store/master/karpuz-hydrapool/icon.png
 description: >-
-  Experimental software. Test with a small hashrate first. Hydrapool on
-  Umbrel comes with no warranty.
+  Experimental software. Test with a small hashrate first.
 
   Run Hydrapool on your Umbrel and choose a local solo pool or a PPLNS pool
   you can share with friends over Tailscale. Miners connect to stratum on
@@ -36,8 +35,9 @@ gallery:
   - https://raw.githubusercontent.com/karpuzmining/hydrapool-umbrel-store/master/karpuz-hydrapool/gallery/2.png
   - https://raw.githubusercontent.com/karpuzmining/hydrapool-umbrel-store/master/karpuz-hydrapool/gallery/3.png
 releaseNotes: >-
-  The overview no longer shows the stratum card. URL, username, and
-  password stay on the Connect tab, with copy buttons for solo and PPLNS.
+  Warranty wording is gone from the experimental notice. Hashrate history
+  is full width, with a chart range and an averaging window taken from
+  the pool's own samples.
 dependencies:
   - bitcoin
 path: ""
