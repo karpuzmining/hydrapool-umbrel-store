@@ -3,6 +3,36 @@
 **Experimental.** Hydrapool on Umbrel is experimental software. Test with a
 small hashrate first.
 
+## About Hydrapool
+
+From the upstream Hydrapool project:
+
+[Hydrapool](https://hydrapool.org/) is an open source Bitcoin mining
+pool with support for solo mining and PPLNS accounting.
+
+We have an instance mining on mainnet at
+[test.hydrapool.org](https://test.hydrapool.org). But we hope you'll
+run a pool for yourself. See
+[how to run your own instance](https://github.com/256foundation/hydrapool#run).
+We only accommodate up to 100 users atm for coinbase and block weight
+reasons, workers are limited by your hardware.
+
+### Features
+
+1. Run a private solo pool or a private PPLNS pool for your community
+   of miners.
+2. Payouts are made directly from coinbase - pool operator doesn't
+   custody any funds. No need to trust the pool operator.
+3. Let users download and validate the accounting of shares. We
+   provide an API for the same. See
+   [API Server](https://github.com/256foundation/hydrapool#api).
+4. Prometheus and Grafana based dashboard for pool, user and worker
+   hashrates and uptimes.
+5. Use any bitcoin node that supports bitcoin RPC.
+6. Implemented in Rust, for ease of extending the pool with novel
+   accounting and payout schemes.
+7. Open source with AGPLv3. Feel free to extend and/or make changes.
+
 ## Credits
 
 [Hydrapool](https://github.com/256foundation/hydrapool) is by the
