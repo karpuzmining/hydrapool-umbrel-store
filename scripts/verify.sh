@@ -18,19 +18,79 @@ else
   exit 1
 fi
 
-COMPOSE=("${DOCKER[@]}" compose -f testing/docker-compose.verify.yml -p hydrapool-verify)
+# Umbrel copies the app into APP_DATA_DIR, then runs compose with a project
+# directory that is not that folder. Relative ./portal mounts miss the files.
+APP_DATA_DIR="$(mktemp -d)"
+PROJECT_DIR="$(mktemp -d)"
+cp -a "${ROOT}/karpuz-hydrapool/." "${APP_DATA_DIR}/"
+mkdir -p "${APP_DATA_DIR}/data" "${PROJECT_DIR}/portal"
+# umbreld removes app_proxy before docker compose up and runs the gateway itself.
+python3 - "${APP_DATA_DIR}/docker-compose.yml" << 'PY'
+import pathlib, sys
+src = pathlib.Path(sys.argv[1])
+out = []
+skip = False
+for line in src.read_text().splitlines(True):
+    if line.startswith("  app_proxy:"):
+        skip = True
+        continue
+    if skip:
+        if line.startswith("  ") and not line.startswith("   ") and line.rstrip().endswith(":"):
+            skip = False
+        else:
+            continue
+    out.append(line)
+src.write_text("".join(out))
+PY
+VERIFY_MOCK_SCRIPT="${ROOT}/testing/mock_bitcoin.py"
+ENV_FILE="$(mktemp)"
+cat > "${ENV_FILE}" << EOF
+APP_DATA_DIR=${APP_DATA_DIR}
+VERIFY_MOCK_SCRIPT=${VERIFY_MOCK_SCRIPT}
+DEVICE_DOMAIN_NAME=umbrel.local
+DEVICE_HOSTNAME=umbrel
+APP_BITCOIN_NETWORK=mainnet
+APP_BITCOIN_NODE_IP=mock-bitcoin
+APP_BITCOIN_RPC_PORT=8332
+APP_BITCOIN_RPC_USER=umbrel
+APP_BITCOIN_RPC_PASS=test-rpc-password
+APP_BITCOIN_ZMQ_HASHBLOCK_PORT=28334
+EOF
+
+COMPOSE=(
+  "${DOCKER[@]}" compose
+  --env-file "${ENV_FILE}"
+  --project-directory "${PROJECT_DIR}"
+  --project-name hydrapool-verify
+  --file "${APP_DATA_DIR}/docker-compose.yml"
+  --file "${ROOT}/testing/docker-compose.verify.yml"
+)
 cleanup() {
   code=$?
   if [ "${code}" -ne 0 ]; then
     "${COMPOSE[@]}" logs --tail 80 || true
   fi
   "${COMPOSE[@]}" down -v --remove-orphans || true
+  rm -rf "${APP_DATA_DIR}" "${PROJECT_DIR}" "${ENV_FILE}" 2>/dev/null || sudo rm -rf "${APP_DATA_DIR}" "${PROJECT_DIR}" "${ENV_FILE}" || true
 }
 trap cleanup EXIT
 
-echo "== docker compose up =="
+echo "== docker compose up (project dir is not the app dir) =="
 "${COMPOSE[@]}" down -v --remove-orphans >/dev/null 2>&1 || true
 "${COMPOSE[@]}" up -d
+
+echo "== app files are visible inside the containers =="
+"${COMPOSE[@]}" exec -T portal python3 -c "import pathlib; p=pathlib.Path('/opt/portal/server.py'); assert p.is_file(), p"
+"${COMPOSE[@]}" exec -T hydrapool sh -c "test -f /opt/umbrel/run-hydrapool.sh && test -s /opt/umbrel/run-hydrapool.sh"
+# No config yet. The supervisor must stay up instead of exiting 0.
+sleep 3
+cid="$("${COMPOSE[@]}" ps -q hydrapool)"
+restarts="$("${DOCKER[@]}" inspect -f '{{.RestartCount}}' "${cid}")"
+running="$("${DOCKER[@]}" inspect -f '{{.State.Running}}' "${cid}")"
+echo "hydrapool running=${running} restarts=${restarts}"
+test "${running}" = "true"
+test "${restarts}" = "0"
+"${COMPOSE[@]}" logs hydrapool | grep -q "waiting for setup"
 
 echo "== wait for dashboard =="
 ready=0

@@ -9,7 +9,7 @@ services:
 
   portal:
     image: python:3.12-alpine
-    restart: on-failure
+    restart: unless-stopped
     stop_grace_period: 30s
     user: "0:0"
     command: ["python3", "-u", "/opt/portal/server.py"]
@@ -27,10 +27,10 @@ services:
       APP_BITCOIN_RPC_PASS: ${APP_BITCOIN_RPC_PASS:-}
       APP_BITCOIN_ZMQ_HASHBLOCK_PORT: ${APP_BITCOIN_ZMQ_HASHBLOCK_PORT:-}
     volumes:
-      # App files live next to this compose file. Do not mount them from
-      # APP_DATA_DIR: that directory is empty on install and Docker will
-      # create a directory where the file should be.
-      - ./portal:/opt/portal:ro
+      # umbreld copies the app into APP_DATA_DIR, then runs compose with a
+      # project directory that is not that folder. Relative ./portal does
+      # not see these files. APP_DATA_DIR is the copied app, not an empty dir.
+      - ${APP_DATA_DIR}/portal:/opt/portal:ro
       - ${APP_DATA_DIR}/data:/data
     healthcheck:
       test:
@@ -51,16 +51,16 @@ services:
     # not depend on this service, so a pool crash still leaves the UI up.
     image: ghcr.io/256foundation/hydrapool:latest
     platform: linux/amd64
-    restart: on-failure
+    # on-failure ignores exit 0. A missing script or a clean shutdown then
+    # stays dead. unless-stopped brings it back until Umbrel stops the app.
+    restart: unless-stopped
     stop_grace_period: 1m
     user: "0:0"
     entrypoint: ["/bin/sh", "/opt/umbrel/run-hydrapool.sh"]
     environment:
       RUST_LOG: info
     volumes:
-      # Resolved from the app directory Umbrel copies to app-data, not from
-      # the persistent data root.
-      - ./scripts/run-hydrapool.sh:/opt/umbrel/run-hydrapool.sh:ro
+      - ${APP_DATA_DIR}/scripts/run-hydrapool.sh:/opt/umbrel/run-hydrapool.sh:ro
       - ${APP_DATA_DIR}/data:/data
     ports:
       # 34533 on the host, 3333 in the container. Host 3333 belongs to
