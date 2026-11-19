@@ -16,7 +16,8 @@ services:
     environment:
       DATA_DIR: /data
       HYDRAPOOL_API_URL: http://hydrapool:46884
-      HYDRAPOOL_STRATUM_PORT: "3333"
+      # Host port miners use. Inside the pool container the listen port stays 3333.
+      HYDRAPOOL_STRATUM_PORT: "34533"
       DEVICE_DOMAIN_NAME: ${DEVICE_DOMAIN_NAME:-umbrel.local}
       DEVICE_HOSTNAME: ${DEVICE_HOSTNAME:-umbrel}
       APP_BITCOIN_NETWORK: ${APP_BITCOIN_NETWORK:-}
@@ -45,8 +46,11 @@ services:
       start_period: 10s
 
   hydrapool:
-    # Upstream image. As of this release the manifest is amd64 only.
+    # Upstream image is amd64-only. Pinning the platform lets arm64 Umbrel
+    # pull it instead of aborting the whole compose file. The portal does
+    # not depend on this service, so a pool crash still leaves the UI up.
     image: ghcr.io/256foundation/hydrapool:latest
+    platform: linux/amd64
     restart: on-failure
     stop_grace_period: 1m
     user: "0:0"
@@ -54,12 +58,15 @@ services:
     environment:
       RUST_LOG: info
     volumes:
+      # Resolved from the app directory Umbrel copies to app-data, not from
+      # the persistent data root.
       - ./scripts/run-hydrapool.sh:/opt/umbrel/run-hydrapool.sh:ro
       - ${APP_DATA_DIR}/data:/data
     ports:
-      # Published on the host so LAN miners and Umbrel's Tailscale app
-      # (host networking) can reach stratum. The API port stays private.
-      - "3333:3333"
+      # 34533 on the host, 3333 in the container. Host 3333 belongs to
+      # Public Pool on many Umbrels, and 2018 is that app's current port.
+      # 3334 is this app's dashboard. The API stays unpublished.
+      - "34533:3333"
     healthcheck:
       test:
         [

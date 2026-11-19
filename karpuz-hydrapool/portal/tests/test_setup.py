@@ -273,7 +273,7 @@ class HttpTests(unittest.TestCase):
         )
         self.assertEqual(status, 200, body)
         public = json.loads(body)["setup"]
-        self.assertEqual(public["tailscale_url"], "stratum+tcp://umbrel.example.ts.net:3333")
+        self.assertEqual(public["tailscale_url"], "stratum+tcp://umbrel.example.ts.net:34533")
         self.assertNotIn("token", public)
         pplns_config = (self.data / "config" / "config.toml").read_text()
         self.assertIn("fee = 50", pplns_config)
@@ -284,7 +284,7 @@ class HttpTests(unittest.TestCase):
 
         status, body = self.request("/api/meta")
         meta = json.loads(body)
-        self.assertEqual(meta["lan_url"], "stratum+tcp://umbrel.local:3333")
+        self.assertEqual(meta["lan_url"], "stratum+tcp://umbrel.local:34533")
         self.assertTrue(meta["configured"])
         self.assertEqual(meta["network"], "main")
         self.assertNotIn("test-rpc-password", body.decode())

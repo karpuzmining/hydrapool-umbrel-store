@@ -27,7 +27,7 @@ services:
     environment:
       DATA_DIR: /data
       HYDRAPOOL_API_URL: http://hydrapool:46884
-      HYDRAPOOL_STRATUM_PORT: "3333"
+      HYDRAPOOL_STRATUM_PORT: "34533"
       DEVICE_DOMAIN_NAME: umbrel.local
       DEVICE_HOSTNAME: umbrel
       APP_BITCOIN_NETWORK: mainnet
@@ -46,6 +46,7 @@ services:
 
   hydrapool:
     image: ghcr.io/256foundation/hydrapool:latest
+    platform: linux/amd64
     user: "0:0"
     entrypoint: ["/bin/sh", "/opt/umbrel/run-hydrapool.sh"]
     environment:
@@ -54,7 +55,7 @@ services:
       - ../karpuz-hydrapool/scripts/run-hydrapool.sh:/opt/umbrel/run-hydrapool.sh:ro
       - hydrapool-data:/data
     ports:
-      - "3333:3333"
+      - "34533:3333"
     depends_on:
       - mock-bitcoin
 

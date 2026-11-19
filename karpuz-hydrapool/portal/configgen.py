@@ -247,6 +247,7 @@ pplns_ttl_days = {int(setup["pplns_ttl_days"])}
 
 [stratum]
 hostname = "0.0.0.0"
+# Container listen port. Umbrel publishes this as host port 34533.
 port = 3333
 start_difficulty = {int(setup["start_difficulty"])}
 minimum_difficulty = {int(setup["minimum_difficulty"])}
