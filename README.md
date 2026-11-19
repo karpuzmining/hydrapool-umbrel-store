@@ -19,9 +19,9 @@ is a private key, a pool wallet, or a default password.
 
 3. Install **Hydrapool**. The dashboard opens even before the pool process
    is configured. The pool stays stopped until you save a payout address.
-   Later updates copy the dashboard and the pool starter from the store
-   checkout before the containers start, so the UI is not stuck on the
-   first version you installed. Reload the page after an update.
+   Updates pull the pinned dashboard image, because Umbrel replaces
+   `docker-compose.yml`. The pre-start hook still copies the pool starter
+   from the store checkout. Reload the page after an update.
 
 4. Open Hydrapool and pick a mode.
 
@@ -92,11 +92,12 @@ Hydra mascot is the app icon.
   `blockmaxweight`. A handful of friends is fine. Umbrel's Bitcoin app does
   not expose that setting.
 - Updates on umbrelOS 2.0 replace `docker-compose.yml`, `exports.sh`, and
-  `hooks`, and leave `portal/` and `scripts/` from the first install.
-  `hooks/pre-start` copies those two directories from the store checkout
-  Umbrel already pulled. A GitHub Actions workflow also publishes a
-  multi-arch portal image; the app does not pull it until that package is
-  public, because a private image would stop the dashboard.
+  `hooks`, and leave `portal/` and `scripts/` from the first install. The
+  dashboard runs from
+  `ghcr.io/karpuzmining/hydrapool-umbrel-portal`, pinned by digest in
+  `docker-compose.yml`, which Umbrel does pull. `hooks/pre-start` still
+  copies `scripts/` (and the on-disk portal tree) from the store checkout
+  so the pool starter is not stuck on the first install.
 - While Bitcoin Knots or Bitcoin Core is downloading blocks,
   `getblocktemplate` returns code -10. The dashboard then says the node is
   syncing and shows verification progress.
