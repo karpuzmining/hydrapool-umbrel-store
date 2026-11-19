@@ -422,8 +422,8 @@ function smoothPoints(points) {
   return points.map((point, index) => {
     let sum = 0;
     let count = 0;
-    for (let cursor = Math.max(0, index - radius); cursor <= Math.min(points.length - 1, index + radius); cursor += 1) {
-      sum += points[cursor].hashrate;
+    for (let offset = Math.max(0, index - radius); offset <= Math.min(points.length - 1, index + radius); offset += 1) {
+      sum += points[offset].hashrate;
       count += 1;
     }
     return { t: point.t, hashrate: sum / count };

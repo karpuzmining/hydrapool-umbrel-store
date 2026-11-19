@@ -9,6 +9,11 @@ icon: https://raw.githubusercontent.com/karpuzmining/hydrapool-umbrel-store/mast
 description: >-
   Experimental software. Test with a small hashrate first.
 
+  Hydrapool is by the 256 Foundation (https://256foundation.org). This
+  app is Umbrel packaging and a dashboard for their pool
+  (https://github.com/256foundation/hydrapool), under the AGPL-3.0.
+  The Hashdash theme follows their Hashdash.
+
   Run Hydrapool on your Umbrel and choose a local solo pool or a PPLNS pool
   you can share with friends over Tailscale. Miners connect to stratum on
   host port 34533. Blocks pay Bitcoin addresses directly from the coinbase,

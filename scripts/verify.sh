@@ -6,6 +6,27 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "${ROOT}"
 
+echo "== app store manifest =="
+test -f umbrel-app-store.yml
+python3 - << 'PY'
+import pathlib, re, sys
+text = pathlib.Path("umbrel-app-store.yml").read_text()
+match = re.search(r'(?m)^id:\s*"([^"]+)"\s*$', text)
+if not match:
+    sys.exit("umbrel-app-store.yml is missing an id")
+store_id = match.group(1)
+if not re.fullmatch(r"[a-z0-9-]+", store_id):
+    sys.exit(f"store id {store_id!r} is not a plain id")
+apps = list(pathlib.Path(".").glob("*/umbrel-app.yml"))
+if not apps:
+    sys.exit("no app manifests found")
+for manifest in apps:
+    folder = manifest.parent.name
+    if not folder.startswith(store_id + "-"):
+        sys.exit(f"{folder} does not start with {store_id}-")
+print(f"store id {store_id} prefixes {len(apps)} app(s)")
+PY
+
 echo "== unit tests =="
 python3 -m unittest discover -s karpuz-hydrapool/portal/tests -v
 

@@ -3,6 +3,18 @@
 **Experimental.** Hydrapool on Umbrel is experimental software. Test with a
 small hashrate first.
 
+## Credits
+
+[Hydrapool](https://github.com/256foundation/hydrapool) is by the
+[256 Foundation](https://256foundation.org). This repository is an Umbrel
+packaging and dashboard for their pool. It is not the pool project itself.
+
+Hydrapool is free software under the GNU Affero General Public License,
+version 3. A copy of that license is in `LICENSE`. The upstream project
+states the same terms.
+
+The Hashdash theme is inspired by Hashdash, also from the 256 Foundation.
+
 Hydrapool is an open-source Bitcoin mining pool from the 256 Foundation.
 This repository is a community Umbrel app store that installs it on umbrelOS.
 

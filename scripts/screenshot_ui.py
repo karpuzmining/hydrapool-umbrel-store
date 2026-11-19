@@ -17,7 +17,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PORTAL = ROOT / "karpuz-hydrapool" / "portal"
-OUT = Path("/opt/cursor/artifacts")
+OUT = Path("/tmp/hydrapool-screenshots")
 ADDRESS_A = "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"
 ADDRESS_B = "bc1p0xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7vqzk5jj0"
 ADDRESS_C = "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"

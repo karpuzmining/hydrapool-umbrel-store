@@ -10,8 +10,25 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Commit identity
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+          if [ "${EVENT_NAME}" = "pull_request" ]; then
+            bash scripts/check-authors.sh "${BASE_SHA}..${HEAD_SHA}"
+          elif [ "${BEFORE_SHA}" = "0000000000000000000000000000000000000000" ]; then
+            bash scripts/check-authors.sh HEAD
+          else
+            bash scripts/check-authors.sh "${BEFORE_SHA}..HEAD"
+          fi
       - name: Dashboard, pool modes, and stratum
         run: bash scripts/verify.sh
