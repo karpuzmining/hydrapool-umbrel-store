@@ -244,8 +244,8 @@ h1 {
   left: 50%;
   bottom: 0;
   z-index: 0;
-  width: min(560px, 92vw);
-  height: clamp(90px, 16vw, 170px);
+  width: min(640px, 96vw);
+  height: clamp(200px, 34vw, 340px);
   overflow: hidden;
   opacity: 0.1;
   pointer-events: none;
@@ -254,10 +254,12 @@ h1 {
 .hydra-watermark img {
   display: block;
   width: 100%;
-  height: 200%;
+  /* Container shows about the top 74% of the graphic. */
+  height: 135%;
   object-fit: cover;
   object-position: center top;
 }
+[data-theme="hashdash"] .hydra-watermark { display: none; }
 .history-tools {
   display: flex;
   justify-content: space-between;
@@ -508,6 +510,10 @@ html[data-experimental="hidden"] .notice { display: none; }
   h1 { font-size: 22px; }
   .tile strong { font-size: 24px; }
   .app { width: min(1180px, calc(100% - 16px)); }
+  .hydra-watermark {
+    width: 100vw;
+    height: clamp(160px, 48vw, 240px);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

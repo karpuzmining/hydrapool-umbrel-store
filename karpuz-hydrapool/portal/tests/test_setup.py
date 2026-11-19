@@ -281,9 +281,9 @@ class HttpTests(unittest.TestCase):
         self.assertIn(b"hydra-watermark", body)
         self.assertIn(b"chart-row", body)
         self.assertNotIn(b"overview-stratum", body)
-        self.assertIn(b"app.css?v=1.0.10", body)
-        self.assertIn(b"app.js?v=1.0.10", body)
-        self.assertIn(b"mascot.svg?v=1.0.10", body)
+        self.assertIn(b"app.css?v=1.0.11", body)
+        self.assertIn(b"app.js?v=1.0.11", body)
+        self.assertIn(b"mascot.svg?v=1.0.11", body)
         status, body = self.request("/healthz")
         self.assertEqual(status, 200)
 
