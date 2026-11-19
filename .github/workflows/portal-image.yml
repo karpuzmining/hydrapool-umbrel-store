@@ -6,7 +6,7 @@ name: Publish portal image
 on:
   workflow_dispatch:
   push:
-    branches: [master, cursor/share-row-fe5b]
+    branches: [master]
     paths:
       - karpuz-hydrapool/portal/**
       - .github/workflows/portal-image.yml
