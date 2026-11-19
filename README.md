@@ -1,5 +1,8 @@
 # Hydrapool for Umbrel
 
+**Experimental.** Hydrapool on Umbrel is experimental software. Test with a
+small hashrate first. It comes with no warranty.
+
 Hydrapool is an open-source Bitcoin mining pool from the 256 Foundation.
 This repository is a community Umbrel app store that installs it on umbrelOS.
 
@@ -106,6 +109,22 @@ Hydra mascot is the app icon.
   syncing and shows verification progress.
 - The compose stack in this repository was tested with Docker Compose and a
   fake Bitcoin RPC. See below.
+
+## Found a bug?
+
+Report it at <https://github.com/karpuzmining/hydrapool-umbrel-store/issues>.
+
+Include:
+
+- umbrelOS version
+- hardware and architecture (for example a mini PC, `x86_64`)
+- app version (the version on the Hydrapool app page)
+- Bitcoin node app and sync state (Bitcoin Node or Bitcoin Knots, and whether it is still downloading blocks)
+- miner model and firmware
+- relevant `docker logs` output, with secrets removed
+
+Do not paste RPC passwords, API tokens, or wallet material. A bug report
+form on that page asks for the same fields.
 
 ## How this was tested
 
