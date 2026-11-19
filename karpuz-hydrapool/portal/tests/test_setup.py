@@ -273,9 +273,10 @@ class HttpTests(unittest.TestCase):
         self.assertIn(b"https://github.com/karpuzmining/hydrapool-umbrel-store/issues", body)
         self.assertNotIn(b"overview-stratum", body)
         self.assertIn(b"connect-stratum", body)
-        self.assertIn(b"app.css?v=1.0.8", body)
-        self.assertIn(b"app.js?v=1.0.8", body)
-        self.assertIn(b"mascot.svg?v=1.0.8", body)
+        self.assertNotIn(b"warranty", body.lower())
+        self.assertIn(b"app.css?v=1.0.9", body)
+        self.assertIn(b"app.js?v=1.0.9", body)
+        self.assertIn(b"mascot.svg?v=1.0.9", body)
         status, body = self.request("/healthz")
         self.assertEqual(status, 200)
 
