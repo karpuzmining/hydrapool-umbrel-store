@@ -1,0 +1,72 @@
+version: "3.7"
+
+services:
+  app_proxy:
+    environment:
+      # Container name is <app id>_<service>_1. The UI is the portal, not the pool.
+      APP_HOST: karpuz-hydrapool_portal_1
+      APP_PORT: "8080"
+
+  portal:
+    image: python:3.12-alpine
+    restart: on-failure
+    stop_grace_period: 30s
+    user: "0:0"
+    command: ["python3", "-u", "/opt/portal/server.py"]
+    environment:
+      DATA_DIR: /data
+      HYDRAPOOL_API_URL: http://hydrapool:46884
+      HYDRAPOOL_STRATUM_PORT: "3333"
+      DEVICE_DOMAIN_NAME: ${DEVICE_DOMAIN_NAME:-umbrel.local}
+      DEVICE_HOSTNAME: ${DEVICE_HOSTNAME:-umbrel}
+      APP_BITCOIN_NETWORK: ${APP_BITCOIN_NETWORK:-}
+      APP_BITCOIN_NODE_IP: ${APP_BITCOIN_NODE_IP:-}
+      APP_BITCOIN_RPC_PORT: ${APP_BITCOIN_RPC_PORT:-}
+      APP_BITCOIN_RPC_USER: ${APP_BITCOIN_RPC_USER:-}
+      APP_BITCOIN_RPC_PASS: ${APP_BITCOIN_RPC_PASS:-}
+      APP_BITCOIN_ZMQ_HASHBLOCK_PORT: ${APP_BITCOIN_ZMQ_HASHBLOCK_PORT:-}
+    volumes:
+      # App files live next to this compose file. Do not mount them from
+      # APP_DATA_DIR: that directory is empty on install and Docker will
+      # create a directory where the file should be.
+      - ./portal:/opt/portal:ro
+      - ${APP_DATA_DIR}/data:/data
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python3",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/healthz', timeout=3).read()",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  hydrapool:
+    # Upstream image. As of this release the manifest is amd64 only.
+    image: ghcr.io/256foundation/hydrapool:latest
+    restart: on-failure
+    stop_grace_period: 1m
+    user: "0:0"
+    entrypoint: ["/bin/sh", "/opt/umbrel/run-hydrapool.sh"]
+    environment:
+      RUST_LOG: info
+    volumes:
+      - ./scripts/run-hydrapool.sh:/opt/umbrel/run-hydrapool.sh:ro
+      - ${APP_DATA_DIR}/data:/data
+    ports:
+      # Published on the host so LAN miners and Umbrel's Tailscale app
+      # (host networking) can reach stratum. The API port stays private.
+      - "3333:3333"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "if [ ! -s /data/config/config.toml ]; then exit 0; fi; pass=$$(cat /data/hydrapool/api.password); wget --spider -q --http-user=hydrapool --http-password=\"$$pass\" --auth-no-challenge http://127.0.0.1:46884/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s

@@ -1,0 +1,62 @@
+# Local stand-in for an Umbrel install. Not used by umbrelOS.
+# The app umbrel actually installs is karpuz-hydrapool/docker-compose.yml.
+
+services:
+  mock-bitcoin:
+    image: python:3.12-alpine
+    command: ["python3", "-u", "/opt/mock/mock_bitcoin.py"]
+    volumes:
+      - ./mock_bitcoin.py:/opt/mock/mock_bitcoin.py:ro
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python3",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8332', timeout=3)",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 3s
+
+  portal:
+    image: python:3.12-alpine
+    user: "0:0"
+    command: ["python3", "-u", "/opt/portal/server.py"]
+    environment:
+      DATA_DIR: /data
+      HYDRAPOOL_API_URL: http://hydrapool:46884
+      HYDRAPOOL_STRATUM_PORT: "3333"
+      DEVICE_DOMAIN_NAME: umbrel.local
+      DEVICE_HOSTNAME: umbrel
+      APP_BITCOIN_NETWORK: mainnet
+      APP_BITCOIN_NODE_IP: mock-bitcoin
+      APP_BITCOIN_RPC_PORT: "8332"
+      APP_BITCOIN_RPC_USER: umbrel
+      APP_BITCOIN_RPC_PASS: test-rpc-password
+      APP_BITCOIN_ZMQ_HASHBLOCK_PORT: "28334"
+    volumes:
+      - ../karpuz-hydrapool/portal:/opt/portal:ro
+      - hydrapool-data:/data
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mock-bitcoin
+
+  hydrapool:
+    image: ghcr.io/256foundation/hydrapool:latest
+    user: "0:0"
+    entrypoint: ["/bin/sh", "/opt/umbrel/run-hydrapool.sh"]
+    environment:
+      RUST_LOG: info
+    volumes:
+      - ../karpuz-hydrapool/scripts/run-hydrapool.sh:/opt/umbrel/run-hydrapool.sh:ro
+      - hydrapool-data:/data
+    ports:
+      - "3333:3333"
+    depends_on:
+      - mock-bitcoin
+
+volumes:
+  hydrapool-data:
