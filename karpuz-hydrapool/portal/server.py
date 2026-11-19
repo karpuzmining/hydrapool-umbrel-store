@@ -25,7 +25,7 @@ import bitcoin_status
 import configgen
 import metrics
 
-ASSET_VERSION = "1.0.4"
+ASSET_VERSION = "1.0.6"
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 DATA_DIR = Path(os.environ.get("DATA_DIR", "/data"))

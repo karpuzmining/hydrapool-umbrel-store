@@ -137,6 +137,7 @@ fi
 
 page="$(curl -fsS http://127.0.0.1:8080/)"
 echo "${page}" | grep -q "HYDRAPOOL"
+echo "${page}" | grep -q "theme-hashdash"
 echo "dashboard HTML ok"
 
 python3 - << 'PY'

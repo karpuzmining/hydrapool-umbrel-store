@@ -3,7 +3,7 @@ id: karpuz-hydrapool
 name: Hydrapool
 tagline: A Bitcoin pool on your Umbrel
 category: bitcoin
-version: "1.0.5"
+version: "1.0.6"
 port: 3334
 icon: https://raw.githubusercontent.com/karpuzmining/hydrapool-umbrel-store/master/karpuz-hydrapool/icon.png
 description: >-
@@ -33,10 +33,9 @@ gallery:
   - https://raw.githubusercontent.com/karpuzmining/hydrapool-umbrel-store/master/karpuz-hydrapool/gallery/2.png
   - https://raw.githubusercontent.com/karpuzmining/hydrapool-umbrel-store/master/karpuz-hydrapool/gallery/3.png
 releaseNotes: >-
-  The dashboard container is the published multi-arch image, pinned by
-  digest, so Umbrel pulls the new UI on update. The pre-start hook still
-  refreshes the pool starter. The status line says when the Bitcoin node
-  is still syncing.
+  The dashboard has two themes. Neon stays the default. Hashdash is a
+  glass layout in the same panels, chosen from the header and remembered
+  in the browser. The portal image is pinned by digest.
 dependencies:
   - bitcoin
 path: ""

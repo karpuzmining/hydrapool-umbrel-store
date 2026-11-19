@@ -1,4 +1,15 @@
-const COLORS = ["#3df0ff", "#ff3dbe", "#ffe14a", "#5dff8a", "#ff9a2e", "#b388ff", "#7dffa0"];
+const PALETTES = {
+  neon: ["#3df0ff", "#ff3dbe", "#ffe14a", "#5dff8a", "#ff9a2e", "#b388ff", "#7dffa0"],
+  hashdash: ["#3ba7ff", "#8b6cff", "#f2c14e", "#3dd68c", "#ff8a5b", "#d46bff", "#5eead4"],
+};
+
+function isHashdash() {
+  return document.documentElement.dataset.theme === "hashdash";
+}
+
+function palette() {
+  return isHashdash() ? PALETTES.hashdash : PALETTES.neon;
+}
 
 const state = {
   meta: null,
@@ -153,18 +164,31 @@ function renderStatus() {
   const configured = state.meta && state.meta.configured;
   const chain = state.live && state.live.bitcoin;
   const up = state.live && state.live.pool_up;
+  const dash = isHashdash();
   pill.classList.remove("down", "wait");
   if (chain && chain.syncing) {
     pill.classList.add("wait");
-    text.textContent = "Node syncing";
+    text.textContent = dash ? "Syncing" : "Node syncing";
   } else if (!configured) {
     pill.classList.add("wait");
     text.textContent = "Setup needed";
   } else if (!up) {
     pill.classList.add("down");
-    text.textContent = "Pool offline";
+    text.textContent = dash ? "Offline" : "Pool offline";
   } else {
-    text.textContent = "Pool online";
+    text.textContent = dash ? "Online" : "Pool online";
+  }
+  const updated = $("last-update");
+  if (updated) {
+    const stamp = new Date().toLocaleString([], {
+      year: "numeric",
+      month: "numeric",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      second: "2-digit",
+    });
+    updated.textContent = `Last Update: ${stamp}`;
   }
 }
 
@@ -191,10 +215,28 @@ function renderBanner() {
   banner.textContent = text;
 }
 
+function setRate(id, value) {
+  const node = $(id);
+  node.replaceChildren();
+  const formatted = formatHashrate(value);
+  const split = formatted.lastIndexOf(" ");
+  if (split <= 0) {
+    node.textContent = formatted;
+    return;
+  }
+  const amount = document.createElement("span");
+  amount.className = "rate";
+  amount.textContent = formatted.slice(0, split);
+  const unit = document.createElement("span");
+  unit.className = "unit";
+  unit.textContent = formatted.slice(split + 1);
+  node.append(amount, unit);
+}
+
 function renderTiles() {
   const live = state.live || {};
-  $("hash-5m").textContent = formatHashrate(live.hashrate_5m);
-  $("hash-1h").textContent = formatHashrate(live.hashrate_1h);
+  setRate("hash-5m", live.hashrate_5m);
+  setRate("hash-1h", live.hashrate_1h);
   $("hash-5m-note").textContent = live.warming_up ? "Warming up" : "Trailing five minutes";
   $("active-users").textContent = String(live.active_users || 0);
   $("active-workers").textContent = String(live.active_workers || 0);
@@ -319,6 +361,10 @@ function canvasSize(canvas) {
 }
 
 function drawHistory(canvas) {
+  if (isHashdash()) {
+    drawHistoryHashdash(canvas);
+    return;
+  }
   const { ctx, width, height } = canvasSize(canvas);
   ctx.clearRect(0, 0, width, height);
   ctx.strokeStyle = "rgba(61, 240, 255, 0.12)";
@@ -366,16 +412,103 @@ function drawHistory(canvas) {
   ctx.fill();
 }
 
+function drawHistoryHashdash(canvas) {
+  const { ctx, width, height } = canvasSize(canvas);
+  ctx.clearRect(0, 0, width, height);
+  const padL = 52;
+  const padR = 12;
+  const padT = 22;
+  const padB = 26;
+  const plotW = Math.max(10, width - padL - padR);
+  const plotH = Math.max(10, height - padT - padB);
+  const points = (state.live && state.live.history) || [];
+  const max = points.length ? Math.max(...points.map((point) => point.hashrate), 1) : 1;
+  const units = ["H/s", "kH/s", "MH/s", "GH/s", "TH/s", "PH/s", "EH/s"];
+  let unitIndex = 0;
+  let scaledMax = max;
+  while (scaledMax >= 1000 && unitIndex < units.length - 1) {
+    scaledMax /= 1000;
+    unitIndex += 1;
+  }
+  const scale = 1000 ** unitIndex;
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+  ctx.fillStyle = "rgba(226, 232, 240, 0.62)";
+  ctx.lineWidth = 1;
+  ctx.font = "11px Segoe UI, Helvetica Neue, sans-serif";
+  ctx.textAlign = "right";
+  ctx.textBaseline = "middle";
+  for (let i = 0; i < 5; i += 1) {
+    const y = padT + (plotH / 4) * i;
+    ctx.beginPath();
+    ctx.moveTo(padL, y);
+    ctx.lineTo(width - padR, y);
+    ctx.stroke();
+    const value = (max * (1 - i / 4)) / scale;
+    const digits = value >= 100 || value === 0 ? 0 : value >= 10 ? 1 : 2;
+    ctx.fillText(value.toFixed(digits), padL - 6, y);
+  }
+  ctx.fillStyle = "#9fd2ff";
+  ctx.textAlign = "left";
+  ctx.fillText(`Hashrate (${units[unitIndex]})`, padL, 10);
+  if (points.length < 2) {
+    ctx.fillStyle = "rgba(226, 232, 240, 0.62)";
+    ctx.font = "13px Segoe UI, Helvetica Neue, sans-serif";
+    ctx.textAlign = "left";
+    ctx.fillText("Waiting for shares", padL + 8, padT + plotH / 2);
+    return;
+  }
+  const minT = points[0].t;
+  const maxT = points[points.length - 1].t || minT + 1;
+  const coords = points.map((point) => {
+    const x = padL + ((point.t - minT) / (maxT - minT)) * plotW;
+    const y = padT + plotH - (point.hashrate / max) * plotH;
+    return [x, y];
+  });
+  ctx.beginPath();
+  coords.forEach(([x, y], index) => {
+    if (index === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+  ctx.strokeStyle = "#3ba7ff";
+  ctx.lineWidth = 2;
+  ctx.shadowBlur = 0;
+  ctx.stroke();
+  ctx.lineTo(coords[coords.length - 1][0], padT + plotH);
+  ctx.lineTo(coords[0][0], padT + plotH);
+  ctx.closePath();
+  const fill = ctx.createLinearGradient(0, padT, 0, padT + plotH);
+  fill.addColorStop(0, "rgba(59, 167, 255, 0.38)");
+  fill.addColorStop(1, "rgba(59, 167, 255, 0.02)");
+  ctx.fillStyle = fill;
+  ctx.fill();
+  ctx.fillStyle = "rgba(226, 232, 240, 0.62)";
+  ctx.font = "11px Segoe UI, Helvetica Neue, sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "alphabetic";
+  [0, Math.floor(points.length / 2), points.length - 1].forEach((index) => {
+    const point = points[index];
+    const x = coords[index][0];
+    const label = new Date(point.t * 1000).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+    ctx.fillText(label, x, height - 6);
+  });
+}
+
 function drawDonut(canvas, legend) {
   const { ctx, width, height } = canvasSize(canvas);
   ctx.clearRect(0, 0, width, height);
-  const users = ((state.live && state.live.users) || []).filter((user) => user.hashrate_5m > 0 && user.active);
+  const users = ((state.live && state.live.users) || [])
+    .filter((user) => user.hashrate_5m > 0 && user.active)
+    .slice()
+    .sort((a, b) => b.hashrate_5m - a.hashrate_5m);
+  const colors = palette();
+  const dash = isHashdash();
   const total = users.reduce((sum, user) => sum + user.hashrate_5m, 0);
   const cx = width / 2;
   const cy = height / 2;
-  const radius = Math.min(width, height) / 2 - 8;
-  ctx.lineWidth = 18;
-  ctx.strokeStyle = "rgba(61, 240, 255, 0.12)";
+  const radius = Math.min(width, height) / 2 - (dash ? 14 : 8);
+  ctx.lineWidth = dash ? 28 : 18;
+  ctx.lineCap = "butt";
+  ctx.strokeStyle = dash ? "rgba(255, 255, 255, 0.06)" : "rgba(61, 240, 255, 0.12)";
   ctx.beginPath();
   ctx.arc(cx, cy, radius, 0, Math.PI * 2);
   ctx.stroke();
@@ -390,9 +523,9 @@ function drawDonut(canvas, legend) {
   users.slice(0, 6).forEach((user, index) => {
     const slice = (user.hashrate_5m / total) * Math.PI * 2;
     ctx.beginPath();
-    ctx.strokeStyle = COLORS[index % COLORS.length];
-    ctx.shadowColor = ctx.strokeStyle;
-    ctx.shadowBlur = 8;
+    ctx.strokeStyle = colors[index % colors.length];
+    ctx.shadowColor = dash ? "transparent" : ctx.strokeStyle;
+    ctx.shadowBlur = dash ? 0 : 8;
     ctx.arc(cx, cy, radius, angle, angle + slice);
     ctx.stroke();
     angle += slice;
@@ -400,7 +533,7 @@ function drawDonut(canvas, legend) {
     const label = document.createElement("span");
     const swatch = document.createElement("i");
     swatch.className = "swatch";
-    swatch.style.background = COLORS[index % COLORS.length];
+    swatch.style.background = colors[index % colors.length];
     label.append(swatch, document.createTextNode(shortAddress(user.address)));
     const value = document.createElement("span");
     value.textContent = `${Math.round((user.hashrate_5m / total) * 100)}%`;
@@ -562,6 +695,32 @@ function bind() {
   });
 }
 
+function applyTheme(theme, persist) {
+  const next = theme === "hashdash" ? "hashdash" : "neon";
+  document.documentElement.dataset.theme = next;
+  const neon = $("theme-neon");
+  const dash = $("theme-hashdash");
+  if (neon) neon.setAttribute("aria-pressed", next === "neon" ? "true" : "false");
+  if (dash) dash.setAttribute("aria-pressed", next === "hashdash" ? "true" : "false");
+  if (persist) {
+    try {
+      localStorage.setItem("hydrapool-theme", next);
+    } catch (error) {
+      /* private mode can reject storage */
+    }
+  }
+  renderStatus();
+  if (state.tab === "overview") drawCharts();
+}
+
+function bindTheme() {
+  document.querySelectorAll("[data-theme-choice]").forEach((button) => {
+    button.addEventListener("click", () => applyTheme(button.dataset.themeChoice, true));
+  });
+  applyTheme(document.documentElement.dataset.theme, false);
+}
+
+bindTheme();
 bind();
 syncSetupVisibility();
 const requestedTab = new URLSearchParams(location.search).get("tab");

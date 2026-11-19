@@ -74,7 +74,10 @@ Miners on your own LAN can still use `stratum+tcp://umbrel.local:34533`.
 
 ## What the dashboard shows
 
-The overview follows the 256 Foundation Hashdash layout: 5 minute and 1 hour
+The header theme switch keeps the neon dashboard or selects Hashdash, a
+glass layout on the same pages. The choice is remembered in the browser.
+A link can set it with `?theme=neon` or `?theme=hashdash`. The overview
+follows the 256 Foundation Hashdash layout: 5 minute and 1 hour
 hashrate, active users, active workers, a hashrate history chart, a miner
 share donut, stratum URLs with copy buttons, and a users and workers table
 with search, grouping, and a show-idle toggle. The look borrows the Mujina

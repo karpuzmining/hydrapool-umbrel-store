@@ -6,6 +6,22 @@
     <meta name="theme-color" content="#070910" />
     <title>Hydrapool</title>
     <link rel="icon" href="mascot.svg" type="image/svg+xml" />
+    <script>
+      (function () {
+        var next = "neon";
+        try {
+          var query = new URLSearchParams(location.search).get("theme");
+          var stored = localStorage.getItem("hydrapool-theme");
+          if (query === "neon" || query === "hashdash") {
+            next = query;
+            localStorage.setItem("hydrapool-theme", query);
+          } else if (stored === "neon" || stored === "hashdash") {
+            next = stored;
+          }
+        } catch (error) {}
+        document.documentElement.setAttribute("data-theme", next);
+      })();
+    </script>
     <link rel="stylesheet" href="app.css" />
   </head>
   <body>
@@ -13,7 +29,7 @@
       <header class="top">
         <div class="brand">
           <img class="mascot" src="mascot.svg" alt="Hydra, the orange multi-headed pool mascot" />
-          <h1>HYDRAPOOL</h1>
+          <h1><span class="neon-word">HYDRAPOOL</span><span class="dash-word">Hydrapool</span></h1>
         </div>
         <nav class="tabs" aria-label="Sections">
           <button type="button" class="tab" data-tab="overview" aria-pressed="true">Overview</button>
@@ -21,9 +37,17 @@
           <button type="button" class="tab" data-tab="connect">Connect</button>
           <button type="button" class="tab" data-tab="setup">Setup</button>
         </nav>
-        <div class="status-pill" id="pool-status">
-          <span class="dot"></span>
-          <span id="pool-status-text">Checking</span>
+        <div class="theme-switch" role="group" aria-label="Dashboard theme">
+          <button type="button" id="theme-neon" data-theme-choice="neon" aria-pressed="true">Neon</button>
+          <button type="button" id="theme-hashdash" data-theme-choice="hashdash" aria-pressed="false">Hashdash</button>
+        </div>
+        <div class="meta-pills">
+          <div class="status-pill" id="pool-status">
+            <span class="dot"></span>
+            <span id="pool-status-text">Checking</span>
+          </div>
+          <span class="chip">Powered by Hydrapool</span>
+          <span class="chip" id="last-update">Last Update: —</span>
         </div>
       </header>
 
@@ -31,7 +55,9 @@
 
       <main>
         <section class="view" id="view-overview">
-          <div class="tiles">
+          <div class="overview-board">
+            <p class="section-kicker">Overview</p>
+            <div class="tiles">
             <article class="tile tile-cyan">
               <p>Hashrate (5m)</p>
               <strong id="hash-5m">—</strong>
@@ -52,6 +78,7 @@
               <strong id="active-workers">0</strong>
               <span id="share-note">Accepted shares 0</span>
             </article>
+            </div>
           </div>
 
           <div class="split">
