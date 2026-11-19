@@ -3,7 +3,7 @@ id: karpuz-hydrapool
 name: Hydrapool
 tagline: A Bitcoin pool on your Umbrel
 category: bitcoin
-version: "1.0.1"
+version: "1.0.2"
 port: 3334
 icon: https://raw.githubusercontent.com/karpuzmining/hydrapool-umbrel-store/master/karpuz-hydrapool/icon.png
 description: >-
@@ -33,9 +33,9 @@ gallery:
   - https://raw.githubusercontent.com/karpuzmining/hydrapool-umbrel-store/master/karpuz-hydrapool/gallery/2.png
   - https://raw.githubusercontent.com/karpuzmining/hydrapool-umbrel-store/master/karpuz-hydrapool/gallery/3.png
 releaseNotes: >-
-  The app icon is a 256x256 PNG. Stratum is published on host port 34533 so
-  it does not collide with Public Pool. The dashboard still opens if the
-  pool container cannot start.
+  Mount the dashboard and pool script from APP_DATA_DIR. Relative paths
+  missed the files Umbrel copies into app-data, so the portal crash-looped.
+  The pool process now stays up and waits for setup.
 dependencies:
   - bitcoin
 path: ""

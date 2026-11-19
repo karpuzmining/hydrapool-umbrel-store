@@ -96,8 +96,9 @@ Hydra mascot is the app icon.
 `scripts/verify.sh` does three things:
 
 1. Unit tests for address validation, solo and PPLNS config, and the setup API.
-2. `docker compose` of the same portal and Hydrapool images the Umbrel app
-   uses, plus a fake Bitcoin node.
+2. `docker compose` of the Umbrel compose file with `APP_DATA_DIR` set to a
+   copy of the app, and the project directory pointed somewhere else, plus
+   a fake Bitcoin node.
 3. HTTP checks that an invalid address is rejected, solo and PPLNS both
    write a config, the dashboard HTML loads, and host port 34533 accepts a
    stratum `mining.subscribe`.
