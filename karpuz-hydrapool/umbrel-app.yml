@@ -3,7 +3,7 @@ id: karpuz-hydrapool
 name: Hydrapool
 tagline: A Bitcoin pool on your Umbrel
 category: bitcoin
-version: "1.0.9"
+version: "1.0.10"
 port: 3334
 icon: https://raw.githubusercontent.com/karpuzmining/hydrapool-umbrel-store/master/karpuz-hydrapool/icon.png
 description: >-
@@ -35,9 +35,9 @@ gallery:
   - https://raw.githubusercontent.com/karpuzmining/hydrapool-umbrel-store/master/karpuz-hydrapool/gallery/2.png
   - https://raw.githubusercontent.com/karpuzmining/hydrapool-umbrel-store/master/karpuz-hydrapool/gallery/3.png
 releaseNotes: >-
-  Warranty wording is gone from the experimental notice. Hashrate history
-  is full width, with a chart range and an averaging window taken from
-  the pool's own samples.
+  Hashrate history sits beside miner share again. The chart range and
+  the actual-hashrate window stay on that card. A faint Hydra mark sits
+  at the bottom of the page.
 dependencies:
   - bitcoin
 path: ""
