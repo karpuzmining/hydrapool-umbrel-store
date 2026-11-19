@@ -36,12 +36,13 @@ Use this when the miners are yours and they sit on the same LAN as the Umbrel.
 
 - Payout address: your own Bitcoin address, on the same network as the node
   (mainnet, testnet4, or signet).
-- Stratum URL: `stratum+tcp://umbrel.local:3333`
+- Stratum URL: `stratum+tcp://umbrel.local:34533`
 - Username: `your-address.worker-name`
 - Password: `x`
 
 If a miner cannot resolve `umbrel.local`, use the Umbrel's LAN IP and port
-3333. Every miner should use your payout address. Hydrapool pays the address
+34533. Host port 3333 is left free because Public Pool already publishes
+stratum there on many Umbrels. Every miner should use your payout address. Hydrapool pays the address
 embedded in the username. The miners table marks a different address so you
 can see it.
 
@@ -52,12 +53,12 @@ pay per last N shares: recent shares, weighted by difficulty, decide each
 coinbase output.
 
 1. Install Umbrel's **Tailscale** app and sign this Umbrel into your tailnet.
-   That app uses host networking. Hydrapool publishes port 3333 on the host,
+   That app uses host networking. Hydrapool publishes port 34533 on the host,
    so people on the tailnet can reach the pool without extra port forwarding.
 2. In the Tailscale app, copy this Umbrel's MagicDNS name. It looks like
    `umbrel.tailnet-name.ts.net`.
 3. In Hydrapool setup, choose PPLNS and paste that name.
-4. Share `stratum+tcp://umbrel.tailnet-name.ts.net:3333`.
+4. Share `stratum+tcp://umbrel.tailnet-name.ts.net:34533`.
 5. Each friend sets the miner username to their own Bitcoin address, a dot,
    and a worker name. The password is `x`.
 
@@ -66,7 +67,7 @@ exist, and it receives the optional pool fee. The fee is in basis points
 (100 basis points is 1%) and starts at 0. Friends' coins are not held by
 the pool.
 
-Miners on your own LAN can still use `stratum+tcp://umbrel.local:3333`.
+Miners on your own LAN can still use `stratum+tcp://umbrel.local:34533`.
 
 ## What the dashboard shows
 
@@ -98,7 +99,7 @@ Hydra mascot is the app icon.
 2. `docker compose` of the same portal and Hydrapool images the Umbrel app
    uses, plus a fake Bitcoin node.
 3. HTTP checks that an invalid address is rejected, solo and PPLNS both
-   write a config, the dashboard HTML loads, and port 3333 accepts a
+   write a config, the dashboard HTML loads, and host port 34533 accepts a
    stratum `mining.subscribe`.
 
 ```bash

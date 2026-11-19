@@ -11,6 +11,7 @@ from __future__ import annotations
 import base64
 import json
 import os
+import platform
 import threading
 import time
 import urllib.error
@@ -26,7 +27,7 @@ import metrics
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 DATA_DIR = Path(os.environ.get("DATA_DIR", "/data"))
 API_URL = os.environ.get("HYDRAPOOL_API_URL", "http://hydrapool:46884").rstrip("/")
-STRATUM_PORT = int(os.environ.get("HYDRAPOOL_STRATUM_PORT", "3333"))
+STRATUM_PORT = int(os.environ.get("HYDRAPOOL_STRATUM_PORT", "34533"))
 SAMPLE_SECONDS = int(os.environ.get("HYDRAPOOL_SAMPLE_SECONDS", "15"))
 HISTORY_SECONDS = 6 * 60 * 60
 
@@ -208,6 +209,7 @@ def meta_payload(data_dir: Path) -> dict:
         "device_hostname": hostname,
         "stratum_port": STRATUM_PORT,
         "lan_url": f"stratum+tcp://{domain}:{STRATUM_PORT}",
+        "cpu_arch": platform.machine(),
         "network": env.get("network") or "",
         "network_label": network_label(env["network"]) if env.get("network") else "",
         "network_supported": bool(env.get("network")),
