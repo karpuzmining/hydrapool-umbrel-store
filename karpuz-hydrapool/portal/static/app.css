@@ -378,6 +378,47 @@ summary { cursor: pointer; color: var(--yellow); font-family: "Share Tech Mono",
 .prose p { margin: 0 0 10px; }
 .empty { color: var(--muted); padding: 16px 8px; }
 
+.notice {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 154, 46, 0.55);
+  background: rgba(40, 24, 8, 0.72);
+  color: var(--orange);
+  font-size: 13px;
+  line-height: 1.4;
+}
+html[data-experimental="hidden"] .notice { display: none; }
+.notice button {
+  flex: none;
+  border: 1px solid rgba(255, 154, 46, 0.55);
+  background: transparent;
+  color: var(--orange);
+  font-family: "Share Tech Mono", ui-monospace, monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 11px;
+  padding: 6px 8px;
+  cursor: pointer;
+}
+
+.site-foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: baseline;
+  flex-wrap: wrap;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+.site-foot p { margin: 0; }
+.site-foot a { color: var(--cyan); }
+
 @media (max-width: 900px) {
   .tiles, .split, .mode-grid, .field-row, .donut-wrap, .copy-row {
     grid-template-columns: 1fr;
@@ -675,6 +716,22 @@ summary { cursor: pointer; color: var(--yellow); font-family: "Share Tech Mono",
 [data-theme="hashdash"] th,
 [data-theme="hashdash"] td { border-bottom-color: rgba(255, 255, 255, 0.08); }
 [data-theme="hashdash"] .user-row td { color: #9fd2ff; }
+
+[data-theme="hashdash"] .notice {
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(244, 247, 251, 0.88);
+}
+[data-theme="hashdash"] .notice button {
+  border-radius: 999px;
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  font-family: "Segoe UI", "Helvetica Neue", sans-serif;
+  letter-spacing: 0;
+  text-transform: none;
+}
+[data-theme="hashdash"] .site-foot a { color: #9fd2ff; }
 
 @media (max-width: 900px) {
   [data-theme="hashdash"] .top {
