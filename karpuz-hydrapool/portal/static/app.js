@@ -241,9 +241,6 @@ function renderTiles() {
   $("active-users").textContent = String(live.active_users || 0);
   $("active-workers").textContent = String(live.active_workers || 0);
   $("share-note").textContent = `Accepted ${live.accepted || 0} · rejected ${live.rejected || 0}`;
-  const setup = state.meta && state.meta.setup;
-  $("stratum-mode").textContent = setup ? (setup.mode === "pplns" ? "PPLNS" : "Solo") : "Not configured";
-  renderStratum($("overview-stratum"));
 }
 
 function filteredRows(which) {
@@ -545,7 +542,8 @@ function drawDonut(canvas, legend) {
 function renderConnect() {
   const card = connectionCard();
   const network = state.meta && state.meta.network_label ? state.meta.network_label : "the node network";
-  $("connect-network").textContent = network;
+  const modeLabel = card.mode === "pplns" ? "PPLNS" : "Solo";
+  $("connect-network").textContent = `${network} · ${modeLabel}`;
   $("connect-title").textContent = card.mode === "pplns" ? "Share the pool" : "Point a miner";
   renderStratum($("connect-stratum"));
   const steps = $("connect-steps");
