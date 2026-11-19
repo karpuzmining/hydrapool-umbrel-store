@@ -228,6 +228,10 @@ worker_last_share_at{btcaddress="bc1quser",workername="rig"} 2000
         self.assertEqual(snap["active_workers"], 1)
         self.assertEqual(snap["active_users"], 1)
         self.assertAlmostEqual(snap["hashrate_5m"], 10 * (1 << 32) / 300)
+        self.assertEqual(snap["history_span"], 300)
+        self.assertAlmostEqual(snap["hashrates"]["300"], snap["hashrate_5m"])
+        self.assertIsNone(snap["hashrates"]["86400"])
+        self.assertGreaterEqual(len(snap["history"]), 1)
 
 
 class HttpTests(unittest.TestCase):
