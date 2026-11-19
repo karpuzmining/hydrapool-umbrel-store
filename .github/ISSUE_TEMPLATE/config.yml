@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Experimental notice and what to include
+    url: https://github.com/karpuzmining/hydrapool-umbrel-store#found-a-bug
+    about: Hydrapool on Umbrel is experimental. Read which details a bug report should include, and strip secrets from logs.

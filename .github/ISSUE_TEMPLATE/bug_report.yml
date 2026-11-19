@@ -1,0 +1,69 @@
+name: Bug report
+description: Something went wrong with Hydrapool on Umbrel
+title: "[Bug]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Hydrapool on Umbrel is experimental software. Remove RPC passwords, API tokens, and wallet material from anything you paste.
+
+  - type: input
+    id: umbrelos
+    attributes:
+      label: umbrelOS version
+      description: Shown in Umbrel settings.
+      placeholder: "2.0"
+    validations:
+      required: true
+
+  - type: input
+    id: hardware
+    attributes:
+      label: Hardware and architecture
+      description: Machine type and CPU architecture, such as a mini PC and x86_64, or Umbrel Home and aarch64.
+      placeholder: "mini PC, x86_64"
+    validations:
+      required: true
+
+  - type: input
+    id: app-version
+    attributes:
+      label: App version
+      description: The Hydrapool version on the Umbrel app page.
+      placeholder: "1.0.7"
+    validations:
+      required: true
+
+  - type: textarea
+    id: bitcoin
+    attributes:
+      label: Bitcoin node app and sync state
+      description: Which Bitcoin app is installed, and whether it is still downloading blocks.
+      placeholder: "Bitcoin Knots, initial sync, about 40% verified"
+    validations:
+      required: true
+
+  - type: textarea
+    id: miner
+    attributes:
+      label: Miner model and firmware
+      placeholder: "Bitaxe 602, firmware 2.4.0"
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: docker logs
+      description: Relevant command output. Delete RPC passwords, API tokens, and wallet material before you paste.
+      render: text
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you expected, and what you saw instead.
+    validations:
+      required: true

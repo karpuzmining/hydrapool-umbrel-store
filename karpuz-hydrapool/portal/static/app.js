@@ -720,6 +720,21 @@ function bindTheme() {
   applyTheme(document.documentElement.dataset.theme, false);
 }
 
+function bindExperimental() {
+  const note = $("experimental-note");
+  const button = $("experimental-dismiss");
+  if (!note || !button) return;
+  button.addEventListener("click", () => {
+    document.documentElement.dataset.experimental = "hidden";
+    try {
+      localStorage.setItem("hydrapool-experimental-dismissed", "1");
+    } catch (error) {
+      /* private mode can reject storage */
+    }
+  });
+}
+
+bindExperimental();
 bindTheme();
 bind();
 syncSetupVisibility();
