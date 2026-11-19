@@ -124,7 +124,8 @@ def window_hashrate(samples: list[dict], now: int, window: int) -> tuple[float |
     if start is None or start is end:
         start = samples[0]
     span = int(end["t"]) - int(start["t"])
-    if span < 30:
+    # A shorter span is a different measurement, not the window that was asked for.
+    if span < max(30, int(window * 0.9)):
         return None, span
     rate = hashrate_between(end, start)
     return rate, span
@@ -158,9 +159,40 @@ def worker_hashrate(samples: list[dict], address: str, worker: str, window: int)
     return gained / span
 
 
+def _downsample(points: list[dict], limit: int) -> list[dict]:
+    if len(points) <= limit:
+        return points
+    step = (len(points) - 1) / (limit - 1)
+    chosen = []
+    last = -1
+    for index in range(limit):
+        pick = round(index * step)
+        if pick == last:
+            continue
+        chosen.append(points[pick])
+        last = pick
+    return chosen
+
+
+def rolling_history(samples: list[dict], window: int = 300, limit: int = 480) -> list[dict]:
+    """Trailing-window hashrate at each stored sample, thinned for the chart."""
+    points = []
+    for index, sample in enumerate(samples):
+        start = _sample_at_or_before(samples[: index + 1], int(sample["t"]) - window)
+        if start is None or start is sample:
+            continue
+        rate = hashrate_between(sample, start)
+        if rate is None:
+            continue
+        points.append({"t": int(sample["t"]), "hashrate": rate})
+    return _downsample(points, limit)
+
+
 def build_snapshot(samples: list[dict], known: dict, now: int, pool_up: bool, pool_error: str) -> dict:
-    rate_5m, span_5m = window_hashrate(samples, now, 300)
-    rate_1h, span_1h = window_hashrate(samples, now, 3600)
+    rate_windows = (60, 300, 900, 3600, 86400)
+    measured = {window: window_hashrate(samples, now, window) for window in rate_windows}
+    rate_5m, span_5m = measured[300]
+    _rate_1h, _span_1h = measured[3600]
     latest = samples[-1] if samples else None
     active_keys = set()
     if latest:
@@ -200,28 +232,25 @@ def build_snapshot(samples: list[dict], known: dict, now: int, pool_up: bool, po
         bucket["active"] = bucket["active"] or (row["active"] and not row["idle"])
 
     user_rows = sorted(users.values(), key=lambda item: (-item["hashrate_5m"], item["address"]))
-    history = []
-    for index, sample in enumerate(samples):
-        start = _sample_at_or_before(samples[: index + 1], int(sample["t"]) - 300)
-        if start is None or start is sample:
-            continue
-        rate = hashrate_between(sample, start)
-        if rate is None:
-            continue
-        history.append({"t": int(sample["t"]), "hashrate": rate})
+    history = rolling_history(samples)
+    history_span = 0
+    if len(samples) >= 2:
+        history_span = int(samples[-1]["t"]) - int(samples[0]["t"])
 
     return {
         "pool_up": pool_up,
         "pool_error": pool_error,
         "hashrate_5m": rate_5m,
-        "hashrate_1h": rate_1h,
+        "hashrate_1h": measured[3600][0],
+        "hashrates": {str(window): measured[window][0] for window in rate_windows},
+        "history_span": history_span,
         "warming_up": span_5m < 60,
         "active_users": len({row["address"] for row in active_rows}),
         "active_workers": len(active_rows),
         "accepted": int(latest["accepted"]) if latest else 0,
         "rejected": int(latest["rejected"]) if latest else 0,
         "best_share": int(latest["best_share"]) if latest else 0,
-        "history": history[-360:],
+        "history": history,
         "users": user_rows,
         "generated_at": now,
     }
