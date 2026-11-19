@@ -81,7 +81,8 @@ custody wallet.
 
 - `umbrel/umbrel-app.yml` depends on the Bitcoin app and opens the dashboard.
 - `umbrel/docker-compose.yml` runs the pool plus a small Python portal.
-  Stratum is published on port 3333 so LAN miners and Umbrel's Tailscale
+  Stratum is published on host port 34533 (container port 3333) so it does
+  not collide with Public Pool, and Umbrel's Tailscale
   app (host networking) can reach it. The API port stays on the app network.
 - Setup writes a per-install API password into the app data directory.
   The image's default config is not used.
@@ -101,5 +102,5 @@ from this repository.
 
 The community store ran `scripts/verify.sh`: unit tests, `docker compose`
 against a fake Bitcoin RPC, dashboard HTTP, both setup modes, and a
-stratum subscribe on port 3333. A physical umbrelOS device was not used.
+stratum subscribe on host port 34533. A physical umbrelOS device was not used.
 ```

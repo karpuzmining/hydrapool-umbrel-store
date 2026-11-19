@@ -119,7 +119,7 @@ function fillForm(setup) {
 function connectionCard() {
   const meta = state.meta || {};
   const setup = meta.setup;
-  const lan = meta.lan_url || "stratum+tcp://umbrel.local:3333";
+  const lan = meta.lan_url || "stratum+tcp://umbrel.local:34533";
   const tail = setup && setup.tailscale_url ? setup.tailscale_url : "";
   const mode = setup ? setup.mode : "solo";
   const primaryUrl = mode === "pplns" && tail ? tail : lan;
@@ -166,9 +166,15 @@ function renderStatus() {
 
 function renderBanner() {
   const banner = $("bitcoin-banner");
-  const problem = state.meta && state.meta.bitcoin_problem;
-  banner.hidden = !problem;
-  banner.textContent = problem || "";
+  const bitcoin = state.meta && state.meta.bitcoin_problem;
+  const arch = (state.meta && state.meta.cpu_arch) || "";
+  const poolDown = state.live && state.live.pool_up === false;
+  let text = bitcoin || "";
+  if (!text && poolDown && /aarch64|arm64/i.test(arch)) {
+    text = "This Umbrel is arm64. The pool image is 64-bit Intel/AMD only, so stratum stays down. The dashboard is still available.";
+  }
+  banner.hidden = !text;
+  banner.textContent = text;
 }
 
 function renderTiles() {
@@ -397,16 +403,17 @@ function renderConnect() {
   renderStratum($("connect-stratum"));
   const steps = $("connect-steps");
   steps.replaceChildren();
+  const port = (state.meta && state.meta.stratum_port) || 34533;
   const lines = card.mode === "pplns"
     ? [
-        "Install Umbrel's Tailscale app and sign this Umbrel into your tailnet. That app uses the host network, and Hydrapool publishes port 3333 on the host, so tailnet peers can reach the pool without extra port forwarding.",
+        `Install Umbrel's Tailscale app and sign this Umbrel into your tailnet. That app uses the host network, and Hydrapool publishes port ${port} on the host, so tailnet peers can reach the pool without extra port forwarding.`,
         "Copy this Umbrel's MagicDNS name from the Tailscale app and paste it into Setup. It looks like umbrel.tailnet-name.ts.net.",
         `Send friends ${card.tail || "the tailnet URL from Setup"}. Miners on the same LAN can keep using ${card.lan}.`,
         `Each friend sets the username to their own ${network} Bitcoin address, a dot, and a worker name. The password is x.`,
         "A found block pays those addresses from the coinbase. You never hold their bitcoin. Your address receives the optional fee and any reward that arrives before the first shares.",
       ]
     : [
-        `On the same LAN, use ${card.lan}. If a miner cannot resolve ${state.meta ? state.meta.device_domain : "umbrel.local"}, use this Umbrel's LAN IP with port ${state.meta ? state.meta.stratum_port : 3333}.`,
+        `On the same LAN, use ${card.lan}. If a miner cannot resolve ${state.meta ? state.meta.device_domain : "umbrel.local"}, use this Umbrel's LAN IP with port ${port}.`,
         "Set the username to your payout address, a dot, and a worker name, for example the value copied above.",
         "Set the password to x. Hydrapool does not use the password for payouts.",
         "Every machine should use your address. A different address is paid directly, and the miners table marks it as another address.",

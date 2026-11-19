@@ -95,14 +95,14 @@ status, body = call(
 )
 assert status == 200, body
 pplns = json.loads(body)["setup"]
-assert pplns["tailscale_url"] == "stratum+tcp://umbrel.example.ts.net:3333"
+assert pplns["tailscale_url"] == "stratum+tcp://umbrel.example.ts.net:34533"
 assert pplns["fee_bps"] == 100
 assert "token" not in pplns
 print("pplns setup saved")
 
 status, body = call("/api/meta")
 meta = json.loads(body)
-assert meta["lan_url"] == "stratum+tcp://umbrel.local:3333"
+assert meta["lan_url"] == "stratum+tcp://umbrel.local:34533"
 assert meta["configured"] is True
 assert meta["bitcoin_ready"] is True
 print("meta ok", meta["lan_url"])
@@ -135,7 +135,7 @@ deadline = time.time() + 90
 last = "not tried"
 while time.time() < deadline:
     try:
-        sock = socket.create_connection(("127.0.0.1", 3333), timeout=3)
+        sock = socket.create_connection(("127.0.0.1", 34533), timeout=3)
         sock.settimeout(8)
         message = {"id": 1, "method": "mining.subscribe", "params": ["hydrapool-verify/1.0"]}
         sock.sendall((json.dumps(message) + "\n").encode())
@@ -152,7 +152,7 @@ while time.time() < deadline:
     last = "empty subscribe response"
     time.sleep(2)
 else:
-    raise SystemExit(f"stratum port 3333 did not accept a subscribe ({last})")
+    raise SystemExit(f"stratum port 34533 did not accept a subscribe ({last})")
 PY
 
 curl -fsS http://127.0.0.1:8080/api/live >/dev/null
