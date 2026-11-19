@@ -8,7 +8,10 @@ services:
       APP_PORT: "8080"
 
   portal:
-    image: python:3.12-alpine
+    # Umbrel replaces this file on update and pulls the image. The digest is
+    # the multi-arch index (amd64 and arm64), so the dashboard is not stuck
+    # on the portal/ copy from the first install.
+    image: ghcr.io/karpuzmining/hydrapool-umbrel-portal:1.0.4@sha256:563132833ceb252a8af6e9c25ab19c70e07d4f120ccaf5b963a729e2d2e583de
     restart: unless-stopped
     stop_grace_period: 30s
     user: "0:0"
@@ -27,12 +30,9 @@ services:
       APP_BITCOIN_RPC_PASS: ${APP_BITCOIN_RPC_PASS:-}
       APP_BITCOIN_ZMQ_HASHBLOCK_PORT: ${APP_BITCOIN_ZMQ_HASHBLOCK_PORT:-}
     volumes:
-      # umbreld copies the app into APP_DATA_DIR, then runs compose with a
-      # project directory that is not that folder. Relative ./portal does
-      # not see these files. hooks/pre-start refreshes portal/ and scripts/
-      # from the store checkout on every start, because Umbrel updates do
-      # not copy those directories.
-      - ${APP_DATA_DIR}/portal:/opt/portal:ro
+      # Dashboard code is in the image above. Only pool data is mounted.
+      # hooks/pre-start still refreshes scripts/ for the pool container,
+      # because Umbrel updates do not copy that directory.
       - ${APP_DATA_DIR}/data:/data
     healthcheck:
       test:

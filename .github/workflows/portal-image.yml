@@ -1,8 +1,8 @@
 name: Publish portal image
 
 # Official Umbrel apps ship UI code in a pinned image. This builds that image.
-# The running app still bind-mounts portal/ from app-data, refreshed by
-# hooks/pre-start, because a missing or private GHCR package would stop the app.
+# The Actions token cannot change org package visibility (the API returns
+# 404), so the job proves Umbrel can pull the tag with no credentials.
 on:
   workflow_dispatch:
   push:
@@ -39,11 +39,7 @@ jobs:
           tags: |
             ghcr.io/karpuzmining/hydrapool-umbrel-portal:${{ steps.version.outputs.version }}
             ghcr.io/karpuzmining/hydrapool-umbrel-portal:latest
-      - name: Make the package public
+      - name: Confirm an Umbrel can pull the image
         run: |
-          gh api --method PATCH \
-            -H "Accept: application/vnd.github+json" \
-            "/orgs/karpuzmining/packages/container/hydrapool-umbrel-portal" \
-            -f visibility=public
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          docker logout ghcr.io
+          docker pull "ghcr.io/karpuzmining/hydrapool-umbrel-portal:${{ steps.version.outputs.version }}"
