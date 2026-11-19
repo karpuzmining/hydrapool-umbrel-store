@@ -1,0 +1,39 @@
+manifestVersion: 1
+id: karpuz-hydrapool
+name: Hydrapool
+tagline: A Bitcoin pool on your Umbrel
+category: bitcoin
+version: "1.0.0"
+port: 3334
+description: >-
+  Run Hydrapool on your Umbrel and choose a local solo pool or a PPLNS pool
+  you can share with friends over Tailscale. Miners connect to stratum port
+  3333. Blocks pay Bitcoin addresses directly from the coinbase, so the pool
+  does not hold a wallet or anyone's coins.
+
+  Open the app, enter your address, and point miners at this Umbrel. Solo
+  mode is for machines on your LAN. PPLNS mode shows the tailnet stratum URL
+  to share, how friends join, and an optional pool fee.
+
+  Install the Bitcoin Node app first. Hydrapool uses that app's RPC and ZMQ
+  endpoints. The upstream Hydrapool container is currently published for
+  64-bit Intel/AMD only, so Umbrel Home and Raspberry Pi cannot start the
+  pool process until an arm64 image exists. The dashboard itself installs
+  on either architecture.
+
+developer: 256 Foundation
+website: https://www.256foundation.org/projects/hydrapool
+submitter: Karpuz Mining
+submission: https://github.com/karpuzmining/hydrapool-umbrel-store
+repo: https://github.com/256foundation/hydrapool
+support: https://github.com/karpuzmining/hydrapool-umbrel-store/issues
+gallery: []
+releaseNotes: >-
+  First installable release. The dashboard loads without a prebuilt portal
+  image, setup chooses solo or PPLNS, and the pool starts only after you
+  save your own payout address.
+dependencies:
+  - bitcoin
+path: ""
+defaultUsername: ""
+defaultPassword: ""
