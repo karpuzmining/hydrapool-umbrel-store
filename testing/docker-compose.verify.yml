@@ -1,12 +1,13 @@
-# Local stand-in for an Umbrel install. Not used by umbrelOS.
-# The app umbrel actually installs is karpuz-hydrapool/docker-compose.yml.
+# Added on top of karpuz-hydrapool/docker-compose.yml.
+# Bind mounts of app files stay in the app compose file and use APP_DATA_DIR.
+# This file only adds the fake Bitcoin node and publishes the dashboard.
 
 services:
   mock-bitcoin:
     image: python:3.12-alpine
     command: ["python3", "-u", "/opt/mock/mock_bitcoin.py"]
     volumes:
-      - ./mock_bitcoin.py:/opt/mock/mock_bitcoin.py:ro
+      - ${VERIFY_MOCK_SCRIPT}:/opt/mock/mock_bitcoin.py:ro
     healthcheck:
       test:
         [
@@ -21,43 +22,11 @@ services:
       start_period: 3s
 
   portal:
-    image: python:3.12-alpine
-    user: "0:0"
-    command: ["python3", "-u", "/opt/portal/server.py"]
-    environment:
-      DATA_DIR: /data
-      HYDRAPOOL_API_URL: http://hydrapool:46884
-      HYDRAPOOL_STRATUM_PORT: "34533"
-      DEVICE_DOMAIN_NAME: umbrel.local
-      DEVICE_HOSTNAME: umbrel
-      APP_BITCOIN_NETWORK: mainnet
-      APP_BITCOIN_NODE_IP: mock-bitcoin
-      APP_BITCOIN_RPC_PORT: "8332"
-      APP_BITCOIN_RPC_USER: umbrel
-      APP_BITCOIN_RPC_PASS: test-rpc-password
-      APP_BITCOIN_ZMQ_HASHBLOCK_PORT: "28334"
-    volumes:
-      - ../karpuz-hydrapool/portal:/opt/portal:ro
-      - hydrapool-data:/data
     ports:
       - "8080:8080"
     depends_on:
       - mock-bitcoin
 
   hydrapool:
-    image: ghcr.io/256foundation/hydrapool:latest
-    platform: linux/amd64
-    user: "0:0"
-    entrypoint: ["/bin/sh", "/opt/umbrel/run-hydrapool.sh"]
-    environment:
-      RUST_LOG: info
-    volumes:
-      - ../karpuz-hydrapool/scripts/run-hydrapool.sh:/opt/umbrel/run-hydrapool.sh:ro
-      - hydrapool-data:/data
-    ports:
-      - "34533:3333"
     depends_on:
       - mock-bitcoin
-
-volumes:
-  hydrapool-data:

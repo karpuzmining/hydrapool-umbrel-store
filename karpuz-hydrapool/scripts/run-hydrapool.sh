@@ -61,3 +61,9 @@ while true; do
   seen=${mtime}
   sleep 2
 done
+
+# restart: on-failure does not revive an exit 0. Stay up if this loop ends.
+echo "Hydrapool supervisor left its wait loop; idling"
+while true; do
+  sleep 3600
+done
