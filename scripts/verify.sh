@@ -9,6 +9,35 @@ cd "${ROOT}"
 echo "== unit tests =="
 python3 -m unittest discover -s karpuz-hydrapool/portal/tests -v
 
+echo "== pre-start copies the store checkout over a stale app-data =="
+STORE_ROOT="$(mktemp -d)"
+APP_STALE="$(mktemp -d)"
+DIRECT="$(mktemp -d)"
+mkdir -p \
+  "${STORE_ROOT}/app-stores/example/karpuz-hydrapool/portal" \
+  "${STORE_ROOT}/app-stores/example/karpuz-hydrapool/scripts" \
+  "${DIRECT}/portal" \
+  "${DIRECT}/scripts" \
+  "${APP_STALE}/portal" \
+  "${APP_STALE}/data"
+printf 'old-ui\n' > "${APP_STALE}/portal/index.html"
+printf 'keep-config\n' > "${APP_STALE}/data/config.toml"
+printf 'from-store\n' > "${STORE_ROOT}/app-stores/example/karpuz-hydrapool/portal/server.py"
+printf '#!/bin/sh\necho from-store\n' > "${STORE_ROOT}/app-stores/example/karpuz-hydrapool/scripts/run-hydrapool.sh"
+printf 'from-env\n' > "${DIRECT}/portal/server.py"
+printf '#!/bin/sh\necho from-env\n' > "${DIRECT}/scripts/run-hydrapool.sh"
+UMBREL_ROOT="${STORE_ROOT}" APP_DATA_DIR="${APP_STALE}" sh "${ROOT}/karpuz-hydrapool/hooks/pre-start"
+grep -q from-store "${APP_STALE}/portal/server.py"
+test ! -f "${APP_STALE}/portal/index.html"
+grep -q from-store "${APP_STALE}/scripts/run-hydrapool.sh"
+grep -q keep-config "${APP_STALE}/data/config.toml"
+SCRIPT_APP_REPO_DIR="${DIRECT}" UMBREL_ROOT="${STORE_ROOT}" APP_DATA_DIR="${APP_STALE}" sh "${ROOT}/karpuz-hydrapool/hooks/pre-start"
+grep -q from-env "${APP_STALE}/portal/server.py"
+printf 'still-old\n' > "${APP_STALE}/portal/index.html"
+SCRIPT_APP_REPO_DIR="" UMBREL_ROOT="${STORE_ROOT}/missing" APP_DATA_DIR="${APP_STALE}" sh "${ROOT}/karpuz-hydrapool/hooks/pre-start"
+grep -q still-old "${APP_STALE}/portal/index.html"
+rm -rf "${STORE_ROOT}" "${APP_STALE}" "${DIRECT}"
+
 if docker info >/dev/null 2>&1; then
   DOCKER=(docker)
 elif sudo docker info >/dev/null 2>&1; then

@@ -3,7 +3,7 @@ id: karpuz-hydrapool
 name: Hydrapool
 tagline: A Bitcoin pool on your Umbrel
 category: bitcoin
-version: "1.0.3"
+version: "1.0.4"
 port: 3334
 icon: https://raw.githubusercontent.com/karpuzmining/hydrapool-umbrel-store/master/karpuz-hydrapool/icon.png
 description: >-
@@ -33,8 +33,9 @@ gallery:
   - https://raw.githubusercontent.com/karpuzmining/hydrapool-umbrel-store/master/karpuz-hydrapool/gallery/2.png
   - https://raw.githubusercontent.com/karpuzmining/hydrapool-umbrel-store/master/karpuz-hydrapool/gallery/3.png
 releaseNotes: >-
-  The header is just the Hydrapool wordmark, and the Hydra graphic has
-  rounded corners in the dashboard and on the app icon.
+  A pre-start hook copies the dashboard and pool starter from the store
+  checkout on every start, so an update is not stuck on the first install.
+  The status line says when the Bitcoin node is still syncing.
 dependencies:
   - bitcoin
 path: ""

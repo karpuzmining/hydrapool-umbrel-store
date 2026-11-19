@@ -1,0 +1,60 @@
+#!/bin/sh
+# umbrelOS updates only docker-compose.yml, exports.sh, templates, torrc,
+# hooks, and umbrel-app.yml. portal/ and scripts/ stay at the first-install
+# copy. This hook is in that whitelist and runs before containers start.
+# SCRIPT_APP_REPO_DIR is the store checkout umbreld already updated.
+set -u
+
+hook_dir=$(CDPATH= cd -- "$(dirname "$0")" && pwd)
+APP_DATA_DIR="${APP_DATA_DIR:-$(CDPATH= cd -- "${hook_dir}/.." && pwd)}"
+
+src=""
+if [ -n "${SCRIPT_APP_REPO_DIR:-}" ] && [ -f "${SCRIPT_APP_REPO_DIR}/portal/server.py" ]; then
+  src="${SCRIPT_APP_REPO_DIR}"
+fi
+
+if [ -z "${src}" ]; then
+  root="${UMBREL_ROOT:-}"
+  if [ -z "${root}" ]; then
+    root=$(CDPATH= cd -- "${hook_dir}/../../" && pwd)
+  fi
+  if [ -d "${root}/app-stores" ]; then
+    for dir in "${root}"/app-stores/*/karpuz-hydrapool; do
+      if [ -f "${dir}/portal/server.py" ]; then
+        src="${dir}"
+      fi
+    done
+  fi
+fi
+
+if [ -z "${src}" ] || [ ! -f "${src}/portal/server.py" ] || [ ! -f "${src}/scripts/run-hydrapool.sh" ]; then
+  echo "Hydrapool pre-start: store checkout not found; leaving app-data files in place"
+  exit 0
+fi
+
+src_real=$(CDPATH= cd -- "${src}" && pwd)
+data_real=$(CDPATH= cd -- "${APP_DATA_DIR}" && pwd)
+if [ "${src_real}" = "${data_real}" ]; then
+  echo "Hydrapool pre-start: store and app-data are the same directory; skipping"
+  exit 0
+fi
+
+stage=$(mktemp -d)
+if ! cp -a "${src_real}/portal" "${stage}/portal"; then
+  echo "Hydrapool pre-start: could not stage portal; leaving app-data files in place"
+  rm -rf "${stage}"
+  exit 0
+fi
+if ! cp -a "${src_real}/scripts" "${stage}/scripts"; then
+  echo "Hydrapool pre-start: could not stage scripts; leaving app-data files in place"
+  rm -rf "${stage}"
+  exit 0
+fi
+
+echo "Hydrapool pre-start: syncing portal and scripts from ${src_real}"
+rm -rf "${data_real}/portal" "${data_real}/scripts"
+mv "${stage}/portal" "${data_real}/portal"
+mv "${stage}/scripts" "${data_real}/scripts"
+rm -rf "${stage}"
+chmod 755 "${data_real}/scripts/run-hydrapool.sh" 2>/dev/null || true
+exit 0

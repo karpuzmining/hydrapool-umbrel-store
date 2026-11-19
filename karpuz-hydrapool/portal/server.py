@@ -21,8 +21,11 @@ from pathlib import Path
 
 from addresses import network_label
 
+import bitcoin_status
 import configgen
 import metrics
+
+ASSET_VERSION = "1.0.4"
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 DATA_DIR = Path(os.environ.get("DATA_DIR", "/data"))
@@ -49,6 +52,15 @@ class Store:
         self.known: dict[tuple[str, str], dict] = {}
         self.pool_up = False
         self.pool_error = "Waiting for the pool"
+        self.bitcoin = {
+            "reachable": False,
+            "syncing": False,
+            "template_error_code": None,
+            "verification_progress": None,
+            "blocks": None,
+            "headers": None,
+            "message": "",
+        }
         self.data_dir.mkdir(parents=True, exist_ok=True)
         self._load()
 
@@ -110,13 +122,15 @@ class Store:
 
     def snapshot(self) -> dict:
         with self.lock:
-            return metrics.build_snapshot(
+            payload = metrics.build_snapshot(
                 list(self.samples),
                 dict(self.known),
                 int(time.time()),
                 self.pool_up,
                 self.pool_error,
             )
+            payload["bitcoin"] = dict(self.bitcoin)
+            return payload
 
     def set_pool(self, up: bool, error: str) -> None:
         with self.lock:
@@ -154,8 +168,58 @@ def sample_once(store: Store) -> None:
     store.add_sample(parsed)
 
 
+def refresh_bitcoin(store: Store) -> None:
+    info, info_error = bitcoin_rpc("getblockchaininfo", [])
+    _template, template_error = bitcoin_rpc(
+        "getblocktemplate",
+        [{"rules": ["segwit"]}],
+    )
+    # A missing node should not look like "still syncing".
+    if info is None and info_error and info_error.get("code") is None and template_error and template_error.get("code") is None:
+        status = bitcoin_status.interpret(None, None)
+        status["reachable"] = False
+    else:
+        status = bitcoin_status.interpret(info, template_error if template_error else None)
+    with store.lock:
+        store.bitcoin = status
+
+
+def bitcoin_rpc(method: str, params: list) -> tuple[dict | None, dict | None]:
+    env = configgen.read_bitcoin_env()
+    if configgen.bitcoin_problem(env):
+        return None, {"code": None, "message": "Bitcoin RPC is not configured"}
+    url = f"http://{env['ip']}:{int(env['rpc_port'])}"
+    payload = json.dumps(
+        {"jsonrpc": "1.0", "id": "portal", "method": method, "params": params}
+    ).encode()
+    request = urllib.request.Request(url, data=payload)
+    request.add_header("Content-Type", "application/json")
+    credentials = base64.b64encode(f"{env['rpc_user']}:{env['rpc_password']}".encode()).decode()
+    request.add_header("Authorization", f"Basic {credentials}")
+    try:
+        with urllib.request.urlopen(request, timeout=5) as response:
+            body = json.loads(response.read().decode())
+    except urllib.error.HTTPError as exc:
+        raw = exc.read().decode(errors="replace")
+        try:
+            body = json.loads(raw)
+        except json.JSONDecodeError:
+            return None, {"code": exc.code, "message": "Bitcoin RPC failed"}
+    except (OSError, urllib.error.URLError, TimeoutError, json.JSONDecodeError):
+        return None, {"code": None, "message": "Bitcoin RPC unreachable"}
+    error = body.get("error")
+    if error:
+        return None, error if isinstance(error, dict) else {"code": None, "message": str(error)}
+    result = body.get("result")
+    return result if isinstance(result, dict) else None, None
+
+
 def sampler(store: Store, stop: threading.Event) -> None:
     while not stop.is_set():
+        try:
+            refresh_bitcoin(store)
+        except Exception as exc:  # noqa: BLE001
+            print(f"[portal] bitcoin status failed: {exc}", flush=True)
         sample_once(store)
         stop.wait(SAMPLE_SECONDS)
 
@@ -303,6 +367,16 @@ class Handler(BaseHTTPRequestHandler):
 
     def _send_file(self, path: Path) -> None:
         body = path.read_bytes()
+        version = ASSET_VERSION.encode()
+        if path.name == "index.html":
+            body = body.replace(b'href="app.css"', b'href="app.css?v=' + version + b'"')
+            body = body.replace(b'src="app.js"', b'src="app.js?v=' + version + b'"')
+            body = body.replace(b'mascot.svg"', b'mascot.svg?v=' + version + b'"')
+        elif path.name == "app.css":
+            body = body.replace(
+                b'share-tech-mono.woff2"',
+                b'share-tech-mono.woff2?v=' + version + b'"',
+            )
         self._send(200, body, CONTENT_TYPES.get(path.suffix, "application/octet-stream"))
 
     def _send_json(self, payload: dict, status: int = 200) -> None:

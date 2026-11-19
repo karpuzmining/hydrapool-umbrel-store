@@ -29,7 +29,9 @@ services:
     volumes:
       # umbreld copies the app into APP_DATA_DIR, then runs compose with a
       # project directory that is not that folder. Relative ./portal does
-      # not see these files. APP_DATA_DIR is the copied app, not an empty dir.
+      # not see these files. hooks/pre-start refreshes portal/ and scripts/
+      # from the store checkout on every start, because Umbrel updates do
+      # not copy those directories.
       - ${APP_DATA_DIR}/portal:/opt/portal:ro
       - ${APP_DATA_DIR}/data:/data
     healthcheck:

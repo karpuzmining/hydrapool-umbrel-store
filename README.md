@@ -19,6 +19,9 @@ is a private key, a pool wallet, or a default password.
 
 3. Install **Hydrapool**. The dashboard opens even before the pool process
    is configured. The pool stays stopped until you save a payout address.
+   Later updates copy the dashboard and the pool starter from the store
+   checkout before the containers start, so the UI is not stuck on the
+   first version you installed. Reload the page after an update.
 
 4. Open Hydrapool and pick a mode.
 
@@ -88,18 +91,30 @@ Hydra mascot is the app icon.
 - A large PPLNS pool can make the coinbase too big for Bitcoin Core's default
   `blockmaxweight`. A handful of friends is fine. Umbrel's Bitcoin app does
   not expose that setting.
-- This was not installed on a physical umbrelOS device. The stack was tested
-  here with Docker Compose and a fake Bitcoin RPC. See below.
+- Updates on umbrelOS 2.0 replace `docker-compose.yml`, `exports.sh`, and
+  `hooks`, and leave `portal/` and `scripts/` from the first install.
+  `hooks/pre-start` copies those two directories from the store checkout
+  Umbrel already pulled. A GitHub Actions workflow also publishes a
+  multi-arch portal image; the app does not pull it until that package is
+  public, because a private image would stop the dashboard.
+- While Bitcoin Knots or Bitcoin Core is downloading blocks,
+  `getblocktemplate` returns code -10. The dashboard then says the node is
+  syncing and shows verification progress.
+- The compose stack in this repository was tested with Docker Compose and a
+  fake Bitcoin RPC. See below.
 
 ## How this was tested
 
-`scripts/verify.sh` does three things:
+`scripts/verify.sh` does four things:
 
-1. Unit tests for address validation, solo and PPLNS config, and the setup API.
-2. `docker compose` of the Umbrel compose file with `APP_DATA_DIR` set to a
+1. Unit tests for address validation, solo and PPLNS config, the setup API,
+   and a `getblocktemplate` error of -10.
+2. A pre-start check that a stale `portal/` and `scripts/` are replaced from
+   the store checkout, and that `data/` is left alone.
+3. `docker compose` of the Umbrel compose file with `APP_DATA_DIR` set to a
    copy of the app, and the project directory pointed somewhere else, plus
    a fake Bitcoin node.
-3. HTTP checks that an invalid address is rejected, solo and PPLNS both
+4. HTTP checks that an invalid address is rejected, solo and PPLNS both
    write a config, the dashboard HTML loads, and host port 34533 accepts a
    stratum `mining.subscribe`.
 
