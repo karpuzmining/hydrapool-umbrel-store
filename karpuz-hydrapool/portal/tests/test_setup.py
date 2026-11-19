@@ -11,6 +11,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import addresses  # noqa: E402
+import bitcoin_status  # noqa: E402
 import configgen  # noqa: E402
 import metrics  # noqa: E402
 import server  # noqa: E402
@@ -56,6 +57,31 @@ class AddressTests(unittest.TestCase):
         self.assertFalse(addresses.hostname_is_valid("http://umbrel.local"))
         self.assertFalse(addresses.hostname_is_valid("umbrel.local:3333"))
         self.assertFalse(addresses.hostname_is_valid(""))
+
+
+class BitcoinStatusTests(unittest.TestCase):
+    def test_template_error_minus_ten_is_syncing(self):
+        status = bitcoin_status.interpret(
+            {
+                "initialblockdownload": True,
+                "verificationprogress": 0.42,
+                "blocks": 100,
+                "headers": 200,
+            },
+            {"code": -10, "message": "Bitcoin is downloading blocks..."},
+        )
+        self.assertTrue(status["syncing"])
+        self.assertEqual(status["message"], "Bitcoin node syncing")
+        self.assertEqual(status["template_error_code"], -10)
+        self.assertAlmostEqual(status["verification_progress"], 0.42)
+
+    def test_ready_node_is_not_syncing(self):
+        status = bitcoin_status.interpret(
+            {"initialblockdownload": False, "verificationprogress": 1, "blocks": 10, "headers": 10},
+            None,
+        )
+        self.assertFalse(status["syncing"])
+        self.assertEqual(status["message"], "")
 
 
 class ConfigTests(unittest.TestCase):
@@ -241,6 +267,9 @@ class HttpTests(unittest.TestCase):
         status, body = self.request("/")
         self.assertEqual(status, 200)
         self.assertIn(b"HYDRAPOOL", body)
+        self.assertIn(b"app.css?v=1.0.4", body)
+        self.assertIn(b"app.js?v=1.0.4", body)
+        self.assertIn(b"mascot.svg?v=1.0.4", body)
         status, body = self.request("/healthz")
         self.assertEqual(status, 200)
 

@@ -1,0 +1,49 @@
+name: Publish portal image
+
+# Official Umbrel apps ship UI code in a pinned image. This builds that image.
+# The running app still bind-mounts portal/ from app-data, refreshed by
+# hooks/pre-start, because a missing or private GHCR package would stop the app.
+on:
+  workflow_dispatch:
+  push:
+    branches: [master]
+    paths:
+      - karpuz-hydrapool/portal/**
+      - .github/workflows/portal-image.yml
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - id: version
+        run: |
+          version=$(python3 -c 'import pathlib,re; text=pathlib.Path("karpuz-hydrapool/umbrel-app.yml").read_text(); print(re.search(r"version: \"([^\"]+)\"", text).group(1))')
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: karpuz-hydrapool/portal
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ghcr.io/karpuzmining/hydrapool-umbrel-portal:${{ steps.version.outputs.version }}
+            ghcr.io/karpuzmining/hydrapool-umbrel-portal:latest
+      - name: Make the package public
+        run: |
+          gh api --method PATCH \
+            -H "Accept: application/vnd.github+json" \
+            "/orgs/karpuzmining/packages/container/hydrapool-umbrel-portal" \
+            -f visibility=public
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

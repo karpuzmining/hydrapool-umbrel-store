@@ -151,9 +151,13 @@ function renderStatus() {
   const pill = $("pool-status");
   const text = $("pool-status-text");
   const configured = state.meta && state.meta.configured;
+  const chain = state.live && state.live.bitcoin;
   const up = state.live && state.live.pool_up;
   pill.classList.remove("down", "wait");
-  if (!configured) {
+  if (chain && chain.syncing) {
+    pill.classList.add("wait");
+    text.textContent = "Node syncing";
+  } else if (!configured) {
     pill.classList.add("wait");
     text.textContent = "Setup needed";
   } else if (!up) {
@@ -167,9 +171,19 @@ function renderStatus() {
 function renderBanner() {
   const banner = $("bitcoin-banner");
   const bitcoin = state.meta && state.meta.bitcoin_problem;
+  const chain = state.live && state.live.bitcoin;
   const arch = (state.meta && state.meta.cpu_arch) || "";
   const poolDown = state.live && state.live.pool_up === false;
-  let text = bitcoin || "";
+  let text = "";
+  if (chain && chain.syncing) {
+    let percent = "";
+    if (typeof chain.verification_progress === "number") {
+      percent = ` (${(chain.verification_progress * 100).toFixed(1)}%)`;
+    }
+    text = `Bitcoin node syncing${percent}. The pool waits for a block template until the node finishes.`;
+  } else {
+    text = bitcoin || "";
+  }
   if (!text && poolDown && /aarch64|arm64/i.test(arch)) {
     text = "This Umbrel is arm64. The pool image is 64-bit Intel/AMD only, so stratum stays down. The dashboard is still available.";
   }
