@@ -20,6 +20,11 @@
           }
         } catch (error) {}
         document.documentElement.setAttribute("data-theme", next);
+        try {
+          if (localStorage.getItem("hydrapool-experimental-dismissed") === "1") {
+            document.documentElement.setAttribute("data-experimental", "hidden");
+          }
+        } catch (error) {}
       })();
     </script>
     <link rel="stylesheet" href="app.css" />
@@ -50,6 +55,11 @@
           <span class="chip" id="last-update">Last Update: —</span>
         </div>
       </header>
+
+      <p class="notice" id="experimental-note">
+        <span>Hydrapool on Umbrel is experimental software. Test with a small hashrate first. It comes with no warranty.</span>
+        <button type="button" id="experimental-dismiss">Dismiss</button>
+      </p>
 
       <p class="banner" id="bitcoin-banner" hidden></p>
 
@@ -266,6 +276,10 @@
           </form>
         </section>
       </main>
+      <footer class="site-foot">
+        <p>Hydrapool on Umbrel is experimental software. Test with a small hashrate first. No warranty.</p>
+        <a href="https://github.com/karpuzmining/hydrapool-umbrel-store/issues">Found a bug?</a>
+      </footer>
     </div>
     <script src="app.js"></script>
   </body>
