@@ -11,7 +11,7 @@ services:
     # Umbrel replaces this file on update and pulls the image. The digest is
     # the multi-arch index (amd64 and arm64), so the dashboard is not stuck
     # on the portal/ copy from the first install.
-    image: ghcr.io/karpuzmining/hydrapool-umbrel-portal:1.0.11@sha256:dc9a4ae3c5ad07ed4eb875049766a2c2ddd68efb9cc9da54ff521cb00bb7f730
+    image: ghcr.io/karpuzmining/hydrapool-umbrel-portal:1.0.12@sha256:3425086cc9f7511936bcb366a2b3e0a804478d8109f84a83c86180bfdb057fd8
     restart: unless-stopped
     stop_grace_period: 30s
     user: "0:0"
