@@ -40,9 +40,10 @@ gallery:
   - https://raw.githubusercontent.com/karpuzmining/hydrapool-umbrel-store/master/karpuz-hydrapool/gallery/2.png
   - https://raw.githubusercontent.com/karpuzmining/hydrapool-umbrel-store/master/karpuz-hydrapool/gallery/3.png
 releaseNotes: >-
-  The neon dashboard shows the whole Hydra mark below the page, and the
-  hashrate line is purple with a lime edge. The footer links to
-  Hydrapool.org.
+  The neon dashboard shows the whole Hydra mark below the page. The
+  hashrate line uses the Hydrapool title colors with a lime edge. Both
+  themes keep their background across the whole window. The footer links
+  to Hydrapool.org.
 dependencies:
   - bitcoin
 path: ""

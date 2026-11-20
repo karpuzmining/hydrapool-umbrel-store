@@ -493,7 +493,7 @@ function drawHistory(canvas) {
   const scale = 1000 ** unitIndex;
   const grid = dash ? "rgba(255, 255, 255, 0.08)" : "rgba(61, 240, 255, 0.16)";
   const ink = dash ? "rgba(226, 232, 240, 0.7)" : "#8ea4bc";
-  const line = dash ? "#3ba7ff" : "#c084fc";
+  const line = "#3ba7ff";
   const lime = "#c6ff4a";
   ctx.strokeStyle = grid;
   ctx.fillStyle = ink;
@@ -511,7 +511,7 @@ function drawHistory(canvas) {
     const digits = value >= 100 || value === 0 ? 0 : value >= 10 ? 1 : 2;
     ctx.fillText(value.toFixed(digits), padL - 6, y);
   }
-  ctx.fillStyle = line;
+  ctx.fillStyle = dash ? line : ink;
   ctx.textAlign = "left";
   ctx.fillText(`Hashrate (${units[unitIndex]})`, padL, 12);
   if (points.length < 2) {
@@ -527,11 +527,37 @@ function drawHistory(canvas) {
     const y = padT + plotH - (point.hashrate / max) * plotH;
     return [x, y];
   });
-  ctx.beginPath();
-  coords.forEach(([x, y], index) => {
-    if (index === 0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
-  });
+  const traceLine = () => {
+    ctx.beginPath();
+    coords.forEach(([x, y], index) => {
+      if (index === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+  };
+  if (!dash) {
+    ctx.save();
+    traceLine();
+    ctx.lineTo(coords[coords.length - 1][0], padT + plotH);
+    ctx.lineTo(coords[0][0], padT + plotH);
+    ctx.closePath();
+    ctx.clip();
+    const fill = ctx.createLinearGradient(padL, 0, padL + plotW, 0);
+    fill.addColorStop(0, "rgba(255, 176, 71, 0.34)");
+    fill.addColorStop(0.58, "rgba(255, 61, 190, 0.34)");
+    fill.addColorStop(1, "rgba(61, 240, 255, 0.34)");
+    ctx.fillStyle = fill;
+    ctx.fillRect(padL, padT, plotW, plotH);
+    const fade = ctx.createLinearGradient(0, padT, 0, padT + plotH);
+    fade.addColorStop(0, "rgba(0, 0, 0, 1)");
+    fade.addColorStop(1, "rgba(0, 0, 0, 0)");
+    ctx.globalCompositeOperation = "destination-in";
+    ctx.fillStyle = fade;
+    ctx.fillRect(padL, padT, plotW, plotH);
+    ctx.restore();
+  }
+  traceLine();
+  ctx.shadowBlur = 0;
+  ctx.shadowColor = "transparent";
   if (!dash) {
     ctx.strokeStyle = lime;
     ctx.lineWidth = 6;
@@ -539,26 +565,28 @@ function drawHistory(canvas) {
     ctx.shadowBlur = 8;
     ctx.stroke();
     ctx.shadowBlur = 0;
+    const stroke = ctx.createLinearGradient(padL, 0, padL + plotW, 0);
+    stroke.addColorStop(0, "#ffb047");
+    stroke.addColorStop(0.58, "#ff3dbe");
+    stroke.addColorStop(1, "#3df0ff");
+    ctx.strokeStyle = stroke;
+    ctx.lineWidth = 3.5;
+  } else {
+    ctx.strokeStyle = line;
+    ctx.lineWidth = 2;
   }
-  ctx.strokeStyle = line;
-  ctx.lineWidth = dash ? 2 : 3.5;
-  ctx.shadowColor = "transparent";
-  ctx.shadowBlur = 0;
   ctx.stroke();
-  ctx.lineTo(coords[coords.length - 1][0], padT + plotH);
-  ctx.lineTo(coords[0][0], padT + plotH);
-  ctx.closePath();
-  const fill = ctx.createLinearGradient(0, padT, 0, padT + plotH);
   if (dash) {
+    ctx.lineTo(coords[coords.length - 1][0], padT + plotH);
+    ctx.lineTo(coords[0][0], padT + plotH);
+    ctx.closePath();
+    const fill = ctx.createLinearGradient(0, padT, 0, padT + plotH);
     fill.addColorStop(0, "rgba(59, 167, 255, 0.38)");
     fill.addColorStop(1, "rgba(59, 167, 255, 0.02)");
-  } else {
-    fill.addColorStop(0, "rgba(192, 132, 252, 0.34)");
-    fill.addColorStop(1, "rgba(192, 132, 252, 0)");
+    ctx.fillStyle = fill;
+    ctx.shadowBlur = 0;
+    ctx.fill();
   }
-  ctx.fillStyle = fill;
-  ctx.shadowBlur = 0;
-  ctx.fill();
   ctx.fillStyle = ink;
   ctx.font = dash ? "11px Segoe UI, Helvetica Neue, sans-serif" : "11px Share Tech Mono, monospace";
   ctx.textAlign = "center";

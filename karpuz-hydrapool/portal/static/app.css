@@ -27,19 +27,26 @@
 html, body {
   margin: 0;
   min-height: 100%;
-  background: var(--bg);
   color: var(--text);
   font-family: "Segoe UI", "Helvetica Neue", sans-serif;
 }
 
-body {
+html {
+  min-height: 100vh;
+  background-color: var(--bg);
   background-image:
     linear-gradient(rgba(61, 240, 255, 0.045) 1px, transparent 1px),
     linear-gradient(90deg, rgba(61, 240, 255, 0.045) 1px, transparent 1px),
     radial-gradient(900px 420px at 0% -10%, rgba(255, 61, 190, 0.18), transparent 55%),
     radial-gradient(700px 380px at 100% 0%, rgba(61, 240, 255, 0.14), transparent 50%);
   background-size: 28px 28px, 28px 28px, auto, auto;
+  background-repeat: repeat, repeat, no-repeat, no-repeat;
   background-attachment: fixed;
+}
+
+body {
+  min-height: 100vh;
+  background: transparent;
 }
 
 body::before {
@@ -512,6 +519,7 @@ html[data-experimental="hidden"] .notice { display: none; }
 
 /* Hashdash: glass cards on a navy-purple gradient. Same markup as neon. */
 [data-theme="hashdash"] {
+  --bg: #12182c;
   --text: #f4f7fb;
   --muted: rgba(226, 232, 240, 0.68);
   --cyan: #3ba7ff;
@@ -523,13 +531,18 @@ html[data-experimental="hidden"] .notice { display: none; }
   --panel: rgba(255, 255, 255, 0.045);
 }
 
-[data-theme="hashdash"] body {
-  background-color: #101426;
+html[data-theme="hashdash"] {
+  background-color: #12182c;
   background-image:
     radial-gradient(900px 480px at 8% -10%, rgba(59, 90, 170, 0.55), transparent 60%),
     radial-gradient(720px 420px at 100% 0%, rgba(92, 48, 140, 0.45), transparent 55%),
     linear-gradient(180deg, #12182c 0%, #171433 48%, #1c163c 100%);
   background-size: auto;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+[data-theme="hashdash"] body {
   font-family: "Segoe UI", "Helvetica Neue", sans-serif;
 }
 
