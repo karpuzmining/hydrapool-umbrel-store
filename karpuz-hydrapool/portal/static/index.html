@@ -31,9 +31,6 @@
   </head>
   <body>
     <div class="app">
-      <div class="hydra-watermark" aria-hidden="true">
-        <img src="mascot.svg" alt="" />
-      </div>
       <header class="top">
         <div class="brand">
           <img class="mascot" src="mascot.svg" alt="Hydra, the orange multi-headed pool mascot" />
@@ -292,8 +289,14 @@
       </main>
       <footer class="site-foot">
         <p>Hydrapool on Umbrel is experimental software. Test with a small hashrate first.</p>
-        <a href="https://github.com/karpuzmining/hydrapool-umbrel-store/issues">Found a bug?</a>
+        <nav class="foot-links" aria-label="More links">
+          <a href="https://hydrapool.org" target="_blank" rel="noopener">Hydrapool.org</a>
+          <a href="https://github.com/karpuzmining/hydrapool-umbrel-store/issues">Found a bug?</a>
+        </nav>
       </footer>
+      <div class="hydra-watermark" aria-hidden="true">
+        <img src="mascot.svg" alt="" />
+      </div>
     </div>
     <script src="app.js"></script>
   </body>

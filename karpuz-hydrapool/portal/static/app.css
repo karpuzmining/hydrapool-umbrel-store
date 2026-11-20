@@ -64,7 +64,7 @@ button, input { font: inherit; color: inherit; }
   z-index: 1;
   width: min(1180px, calc(100% - 28px));
   margin: 0 auto;
-  padding: 22px 0 48px;
+  padding: 22px 0 28px;
 }
 .app > :not(.hydra-watermark) {
   position: relative;
@@ -240,26 +240,19 @@ h1 {
 .history-card, .share-card { margin-bottom: 12px; }
 .split .history-card, .split .share-card { margin-bottom: 0; }
 .hydra-watermark {
-  position: absolute;
-  left: 50%;
-  bottom: 0;
-  z-index: 0;
-  width: min(640px, 96vw);
-  height: clamp(200px, 34vw, 340px);
-  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  margin-top: 12px;
   opacity: 0.1;
   pointer-events: none;
-  transform: translateX(-50%);
 }
 .hydra-watermark img {
   display: block;
-  width: 100%;
-  /* Container shows about the top 74% of the graphic. */
-  height: 135%;
-  object-fit: cover;
-  object-position: center top;
+  width: min(520px, 88vw);
+  height: auto;
 }
 [data-theme="hashdash"] .hydra-watermark { display: none; }
+.foot-links { display: flex; gap: 14px; flex-wrap: wrap; }
 .history-tools {
   display: flex;
   justify-content: space-between;
@@ -510,10 +503,7 @@ html[data-experimental="hidden"] .notice { display: none; }
   h1 { font-size: 22px; }
   .tile strong { font-size: 24px; }
   .app { width: min(1180px, calc(100% - 16px)); }
-  .hydra-watermark {
-    width: 100vw;
-    height: clamp(160px, 48vw, 240px);
-  }
+  .hydra-watermark img { width: min(420px, 92vw); }
 }
 
 @media (prefers-reduced-motion: reduce) {

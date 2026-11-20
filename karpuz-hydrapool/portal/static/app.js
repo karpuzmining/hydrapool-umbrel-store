@@ -493,7 +493,8 @@ function drawHistory(canvas) {
   const scale = 1000 ** unitIndex;
   const grid = dash ? "rgba(255, 255, 255, 0.08)" : "rgba(61, 240, 255, 0.16)";
   const ink = dash ? "rgba(226, 232, 240, 0.7)" : "#8ea4bc";
-  const line = dash ? "#3ba7ff" : "#3df0ff";
+  const line = dash ? "#3ba7ff" : "#c084fc";
+  const lime = "#c6ff4a";
   ctx.strokeStyle = grid;
   ctx.fillStyle = ink;
   ctx.lineWidth = 1;
@@ -531,10 +532,18 @@ function drawHistory(canvas) {
     if (index === 0) ctx.moveTo(x, y);
     else ctx.lineTo(x, y);
   });
+  if (!dash) {
+    ctx.strokeStyle = lime;
+    ctx.lineWidth = 6;
+    ctx.shadowColor = lime;
+    ctx.shadowBlur = 8;
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+  }
   ctx.strokeStyle = line;
-  ctx.lineWidth = 2;
-  ctx.shadowColor = dash ? "transparent" : line;
-  ctx.shadowBlur = dash ? 0 : 8;
+  ctx.lineWidth = dash ? 2 : 3.5;
+  ctx.shadowColor = "transparent";
+  ctx.shadowBlur = 0;
   ctx.stroke();
   ctx.lineTo(coords[coords.length - 1][0], padT + plotH);
   ctx.lineTo(coords[0][0], padT + plotH);
@@ -544,8 +553,8 @@ function drawHistory(canvas) {
     fill.addColorStop(0, "rgba(59, 167, 255, 0.38)");
     fill.addColorStop(1, "rgba(59, 167, 255, 0.02)");
   } else {
-    fill.addColorStop(0, "rgba(61, 240, 255, 0.28)");
-    fill.addColorStop(1, "rgba(61, 240, 255, 0)");
+    fill.addColorStop(0, "rgba(192, 132, 252, 0.34)");
+    fill.addColorStop(1, "rgba(192, 132, 252, 0)");
   }
   ctx.fillStyle = fill;
   ctx.shadowBlur = 0;
